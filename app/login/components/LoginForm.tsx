@@ -67,23 +67,13 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!validateForm()) return;
 
     setIsLoading(true);
+
     try {
-      const success = await login(
-        formData.email,
-        formData.password,
-        formData.rememberMe
-      );
-      if (success) {
-        router.push("/");
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          general: "이메일 또는 비밀번호가 올바르지 않습니다.",
-        }));
-      }
+      router.push("/dashboard");
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
