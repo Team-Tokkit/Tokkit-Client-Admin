@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import VoucherIssueForm from "@/components/voucher-issue-form";
 import { VoucherContent } from "@/components/voucher-content";
 import { NoticeContent } from "@/components/notice-content";
-import { AuthContent } from "@/components/auth-content";
+// import { AuthContent } from "@/components/auth-content";
 import { PaymentContent } from "@/components/payment-content";
 import { MerchantContent } from "@/components/merchant-content";
-import { SystemLogContent } from "@/components/system-log-content";
+// import { SystemLogContent } from "@/components/system-log-content";
 import {
   Card,
   CardContent,
