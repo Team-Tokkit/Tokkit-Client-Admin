@@ -1,11 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -13,13 +19,13 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { toast } from "@/components/ui/use-toast"
-import { generateTraceId } from "@/lib/api"
-import { ResponsiveTable } from "./responsive-table"
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/use-toast";
+import { generateTraceId } from "@/lib/api";
+import { ResponsiveTable } from "./responsive-table";
 import {
   Search,
   RefreshCcw,
@@ -32,7 +38,7 @@ import {
   Database,
   User,
   CreditCard,
-} from "lucide-react"
+} from "lucide-react";
 
 import {
   mockApiRequestLogs,
@@ -43,85 +49,95 @@ import {
   type LoginLog,
   type TransactionLog,
   type SystemErrorLog,
-} from "@/data/mockLogs"
+} from "@/data/mockLogs";
 
 // 로그 설정 타입 정의
 interface LogSettings {
-  retention: number // 일 단위
-  autoDeleteEnabled: boolean
-  notificationEnabled: boolean
-  errorNotificationOnly: boolean
-  logLevel: "INFO" | "WARN" | "ERROR" | "DEBUG" | "TRACE"
+  retention: number; // 일 단위
+  autoDeleteEnabled: boolean;
+  notificationEnabled: boolean;
+  errorNotificationOnly: boolean;
+  logLevel: "INFO" | "WARN" | "ERROR" | "DEBUG" | "TRACE";
 }
 
 export function SystemLogContent() {
   // 탭 상태
-  const [activeTab, setActiveTab] = useState("api")
+  const [activeTab, setActiveTab] = useState("api");
 
   // API 요청 로그 상태
-  const [apiLogs, setApiLogs] = useState<ApiRequestLog[]>([])
-  const [filteredApiLogs, setFilteredApiLogs] = useState<ApiRequestLog[]>([])
+  const [apiLogs, setApiLogs] = useState<ApiRequestLog[]>([]);
+  const [filteredApiLogs, setFilteredApiLogs] = useState<ApiRequestLog[]>([]);
   const [apiSearchParams, setApiSearchParams] = useState({
     keyword: "",
     method: "all",
     status: "all",
     dateRange: "all",
-  })
-  const [selectedApiLog, setSelectedApiLog] = useState<ApiRequestLog | null>(null)
+  });
+  const [selectedApiLog, setSelectedApiLog] = useState<ApiRequestLog | null>(
+    null
+  );
 
   // 로그인 로그 상태
-  const [loginLogs, setLoginLogs] = useState<LoginLog[]>([])
-  const [filteredLoginLogs, setFilteredLoginLogs] = useState<LoginLog[]>([])
+  const [loginLogs, setLoginLogs] = useState<LoginLog[]>([]);
+  const [filteredLoginLogs, setFilteredLoginLogs] = useState<LoginLog[]>([]);
   const [loginSearchParams, setLoginSearchParams] = useState({
     keyword: "",
     event: "all",
     success: "all",
     dateRange: "all",
-  })
-  const [selectedLoginLog, setSelectedLoginLog] = useState<LoginLog | null>(null)
+  });
+  const [selectedLoginLog, setSelectedLoginLog] = useState<LoginLog | null>(
+    null
+  );
 
   // 트랜잭션 로그 상태
-  const [transactionLogs, setTransactionLogs] = useState<TransactionLog[]>([])
-  const [filteredTransactionLogs, setFilteredTransactionLogs] = useState<TransactionLog[]>([])
+  const [transactionLogs, setTransactionLogs] = useState<TransactionLog[]>([]);
+  const [filteredTransactionLogs, setFilteredTransactionLogs] = useState<
+    TransactionLog[]
+  >([]);
   const [transactionSearchParams, setTransactionSearchParams] = useState({
     keyword: "",
     type: "all",
     status: "all",
     dateRange: "all",
-  })
-  const [selectedTransactionLog, setSelectedTransactionLog] = useState<TransactionLog | null>(null)
+  });
+  const [selectedTransactionLog, setSelectedTransactionLog] =
+    useState<TransactionLog | null>(null);
 
   // 시스템 에러 로그 상태
-  const [errorLogs, setErrorLogs] = useState<SystemErrorLog[]>([])
-  const [filteredErrorLogs, setFilteredErrorLogs] = useState<SystemErrorLog[]>([])
+  const [errorLogs, setErrorLogs] = useState<SystemErrorLog[]>([]);
+  const [filteredErrorLogs, setFilteredErrorLogs] = useState<SystemErrorLog[]>(
+    []
+  );
   const [errorSearchParams, setErrorSearchParams] = useState({
     keyword: "",
     severity: "all",
     dateRange: "all",
-  })
-  const [selectedErrorLog, setSelectedErrorLog] = useState<SystemErrorLog | null>(null)
+  });
+  const [selectedErrorLog, setSelectedErrorLog] =
+    useState<SystemErrorLog | null>(null);
 
   // 공통 상태
-  const [isLoading, setIsLoading] = useState(true)
-  const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [logSettings, setLogSettings] = useState<LogSettings>({
     retention: 30,
     autoDeleteEnabled: true,
     notificationEnabled: true,
     errorNotificationOnly: true,
     logLevel: "INFO",
-  })
-  const [showRealtime, setShowRealtime] = useState(false)
+  });
+  const [showRealtime, setShowRealtime] = useState(false);
 
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
-    fetchLogs()
-  }, [])
+    fetchLogs();
+  }, []);
 
   // 탭 변경 시 필터링 초기화
   useEffect(() => {
-    filterLogs()
+    filterLogs();
   }, [
     activeTab,
     apiSearchParams,
@@ -132,16 +148,16 @@ export function SystemLogContent() {
     loginLogs,
     transactionLogs,
     errorLogs,
-  ])
+  ]);
 
   // 실시간 로그 시뮬레이션
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
+    let interval: NodeJS.Timeout | null = null;
 
     if (showRealtime) {
       interval = setInterval(() => {
-        const randomLogType = Math.floor(Math.random() * 4)
-        const traceId = generateTraceId()
+        const randomLogType = Math.floor(Math.random() * 4);
+        const traceId = generateTraceId();
 
         switch (randomLogType) {
           case 0: // API 로그
@@ -149,17 +165,25 @@ export function SystemLogContent() {
               id: Date.now(),
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
-              endpoint: ["/api/v1/users", "/api/v1/transactions", "/api/v1/auth/login"][Math.floor(Math.random() * 3)],
+              endpoint: [
+                "/api/v1/users",
+                "/api/v1/transactions",
+                "/api/v1/auth/login",
+              ][Math.floor(Math.random() * 3)],
               ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
-              method: ["GET", "POST", "PUT", "DELETE"][Math.floor(Math.random() * 4)],
-              responseStatus: [200, 201, 400, 404, 500][Math.floor(Math.random() * 5)],
+              method: ["GET", "POST", "PUT", "DELETE"][
+                Math.floor(Math.random() * 4)
+              ],
+              responseStatus: [200, 201, 400, 404, 500][
+                Math.floor(Math.random() * 5)
+              ],
               responseTimeMs: Math.floor(Math.random() * 500),
               timestamp: new Date().toISOString(),
               userId: Math.floor(Math.random() * 10) + 1,
               traceId,
-            }
-            setApiLogs((prev) => [newApiLog, ...prev])
-            break
+            };
+            setApiLogs((prev) => [newApiLog, ...prev]);
+            break;
 
           case 1: // 로그인 로그
             const newLoginLog: LoginLog = {
@@ -172,14 +196,22 @@ export function SystemLogContent() {
               success: Math.random() > 0.2,
               timestamp: new Date().toISOString(),
               traceId,
-              userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            }
-            setLoginLogs((prev) => [newLoginLog, ...prev])
-            break
+              userAgent:
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            };
+            setLoginLogs((prev) => [newLoginLog, ...prev]);
+            break;
 
           case 2: // 트랜잭션 로그
-            const txTypes = ["DEPOSIT", "PURCHASE", "REFUND", "WITHDRAW", "CONVERT", "RECEIVE"]
-            const txStatuses = ["SUCCESS", "PENDING", "FAILURE"]
+            const txTypes = [
+              "DEPOSIT",
+              "PURCHASE",
+              "REFUND",
+              "WITHDRAW",
+              "CONVERT",
+              "RECEIVE",
+            ];
+            const txStatuses = ["SUCCESS", "PENDING", "FAILURE"];
             const newTransactionLog: TransactionLog = {
               id: Date.now(),
               createdAt: new Date().toISOString(),
@@ -189,212 +221,248 @@ export function SystemLogContent() {
               txHash: `0x${Math.random().toString(16).substring(2, 10)}`,
               type: txTypes[Math.floor(Math.random() * txTypes.length)] as any,
               walletId: Math.floor(Math.random() * 5) + 1,
-              status: txStatuses[Math.floor(Math.random() * txStatuses.length)] as any,
+              status: txStatuses[
+                Math.floor(Math.random() * txStatuses.length)
+              ] as any,
               timestamp: new Date().toISOString(),
               traceId,
-            }
-            setTransactionLogs((prev) => [newTransactionLog, ...prev])
-            break
+            };
+            setTransactionLogs((prev) => [newTransactionLog, ...prev]);
+            break;
 
           case 3: // 에러 로그
-            const severities = ["INFO", "WARN", "ERROR", "FATAL"]
+            const severities = ["INFO", "WARN", "ERROR", "FATAL"];
             const newErrorLog: SystemErrorLog = {
               id: Date.now(),
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
-              endpoint: ["/api/v1/users", "/api/v1/transactions", "/api/v1/auth/login"][Math.floor(Math.random() * 3)],
+              endpoint: [
+                "/api/v1/users",
+                "/api/v1/transactions",
+                "/api/v1/auth/login",
+              ][Math.floor(Math.random() * 3)],
               errorMessage: "자동 생성된 에러 메시지",
               serverName: `server-${Math.floor(Math.random() * 5) + 1}`,
-              severity: severities[Math.floor(Math.random() * severities.length)] as any,
+              severity: severities[
+                Math.floor(Math.random() * severities.length)
+              ] as any,
               timestamp: new Date().toISOString(),
               userId: Math.floor(Math.random() * 5) + 1,
               traceId,
-            }
-            setErrorLogs((prev) => [newErrorLog, ...prev])
-            break
+            };
+            setErrorLogs((prev) => [newErrorLog, ...prev]);
+            break;
         }
-      }, 5000)
+      }, 5000);
     }
 
     return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [showRealtime])
+      if (interval) clearInterval(interval);
+    };
+  }, [showRealtime]);
 
   // 로그 데이터 조회
   const fetchLogs = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       // 더미 데이터 사용
       setTimeout(() => {
-        setApiLogs(mockApiRequestLogs)
-        setLoginLogs(mockLoginLogs)
-        setTransactionLogs(mockTransactionLogs)
-        setErrorLogs(mockSystemErrorLogs)
-        setIsLoading(false)
-      }, 500)
+        setApiLogs(mockApiRequestLogs);
+        setLoginLogs(mockLoginLogs);
+        setTransactionLogs(mockTransactionLogs);
+        setErrorLogs(mockSystemErrorLogs);
+        setIsLoading(false);
+      }, 500);
     } catch (error) {
-      console.error("로그 데이터 로딩 중 오류 발생:", error)
-      setIsLoading(false)
+      console.error("로그 데이터 로딩 중 오류 발생:", error);
+      setIsLoading(false);
     }
-  }
+  };
 
   // 로그 필터링
   const filterLogs = () => {
     // API 로그 필터링
-    let filteredApi = [...apiLogs]
+    let filteredApi = [...apiLogs];
     if (apiSearchParams.keyword) {
-      const keyword = apiSearchParams.keyword.toLowerCase()
+      const keyword = apiSearchParams.keyword.toLowerCase();
       filteredApi = filteredApi.filter(
         (log) =>
           log.endpoint.toLowerCase().includes(keyword) ||
           log.ipAddress.includes(keyword) ||
-          log.traceId.toLowerCase().includes(keyword),
-      )
+          log.traceId.toLowerCase().includes(keyword)
+      );
     }
     if (apiSearchParams.method !== "all") {
-      filteredApi = filteredApi.filter((log) => log.method === apiSearchParams.method)
+      filteredApi = filteredApi.filter(
+        (log) => log.method === apiSearchParams.method
+      );
     }
     if (apiSearchParams.status !== "all") {
-      const statusCode = Number.parseInt(apiSearchParams.status)
+      const statusCode = Number.parseInt(apiSearchParams.status);
       filteredApi = filteredApi.filter((log) => {
-        if (apiSearchParams.status === "2xx") return log.responseStatus >= 200 && log.responseStatus < 300
-        if (apiSearchParams.status === "4xx") return log.responseStatus >= 400 && log.responseStatus < 500
-        if (apiSearchParams.status === "5xx") return log.responseStatus >= 500
-        return log.responseStatus === statusCode
-      })
+        if (apiSearchParams.status === "2xx")
+          return log.responseStatus >= 200 && log.responseStatus < 300;
+        if (apiSearchParams.status === "4xx")
+          return log.responseStatus >= 400 && log.responseStatus < 500;
+        if (apiSearchParams.status === "5xx") return log.responseStatus >= 500;
+        return log.responseStatus === statusCode;
+      });
     }
     if (apiSearchParams.dateRange !== "all") {
-      filteredApi = filterByDateRange(filteredApi, apiSearchParams.dateRange)
+      filteredApi = filterByDateRange(filteredApi, apiSearchParams.dateRange);
     }
-    setFilteredApiLogs(filteredApi)
+    setFilteredApiLogs(filteredApi);
 
     // 로그인 로그 필터링
-    let filteredLogin = [...loginLogs]
+    let filteredLogin = [...loginLogs];
     if (loginSearchParams.keyword) {
-      const keyword = loginSearchParams.keyword.toLowerCase()
+      const keyword = loginSearchParams.keyword.toLowerCase();
       filteredLogin = filteredLogin.filter(
         (log) =>
           log.ipAddress.includes(keyword) ||
           log.traceId.toLowerCase().includes(keyword) ||
-          (log.userAgent && log.userAgent.toLowerCase().includes(keyword)),
-      )
+          (log.userAgent && log.userAgent.toLowerCase().includes(keyword))
+      );
     }
     if (loginSearchParams.event !== "all") {
-      filteredLogin = filteredLogin.filter((log) => log.event === loginSearchParams.event)
+      filteredLogin = filteredLogin.filter(
+        (log) => log.event === loginSearchParams.event
+      );
     }
     if (loginSearchParams.success !== "all") {
-      filteredLogin = filteredLogin.filter((log) => log.success === (loginSearchParams.success === "success"))
+      filteredLogin = filteredLogin.filter(
+        (log) => log.success === (loginSearchParams.success === "success")
+      );
     }
     if (loginSearchParams.dateRange !== "all") {
-      filteredLogin = filterByDateRange(filteredLogin, loginSearchParams.dateRange)
+      filteredLogin = filterByDateRange(
+        filteredLogin,
+        loginSearchParams.dateRange
+      );
     }
-    setFilteredLoginLogs(filteredLogin)
+    setFilteredLoginLogs(filteredLogin);
 
     // 트랜잭션 로그 필터링
-    let filteredTransaction = [...transactionLogs]
+    let filteredTransaction = [...transactionLogs];
     if (transactionSearchParams.keyword) {
-      const keyword = transactionSearchParams.keyword.toLowerCase()
+      const keyword = transactionSearchParams.keyword.toLowerCase();
       filteredTransaction = filteredTransaction.filter(
         (log) =>
-          (log.description && log.description.toLowerCase().includes(keyword)) ||
+          (log.description &&
+            log.description.toLowerCase().includes(keyword)) ||
           (log.txHash && log.txHash.toLowerCase().includes(keyword)) ||
-          log.traceId.toLowerCase().includes(keyword),
-      )
+          log.traceId.toLowerCase().includes(keyword)
+      );
     }
     if (transactionSearchParams.type !== "all") {
-      filteredTransaction = filteredTransaction.filter((log) => log.type === transactionSearchParams.type)
+      filteredTransaction = filteredTransaction.filter(
+        (log) => log.type === transactionSearchParams.type
+      );
     }
     if (transactionSearchParams.status !== "all") {
-      filteredTransaction = filteredTransaction.filter((log) => log.status === transactionSearchParams.status)
+      filteredTransaction = filteredTransaction.filter(
+        (log) => log.status === transactionSearchParams.status
+      );
     }
     if (transactionSearchParams.dateRange !== "all") {
-      filteredTransaction = filterByDateRange(filteredTransaction, transactionSearchParams.dateRange)
+      filteredTransaction = filterByDateRange(
+        filteredTransaction,
+        transactionSearchParams.dateRange
+      );
     }
-    setFilteredTransactionLogs(filteredTransaction)
+    setFilteredTransactionLogs(filteredTransaction);
 
     // 에러 로그 필터링
-    let filteredError = [...errorLogs]
+    let filteredError = [...errorLogs];
     if (errorSearchParams.keyword) {
-      const keyword = errorSearchParams.keyword.toLowerCase()
+      const keyword = errorSearchParams.keyword.toLowerCase();
       filteredError = filteredError.filter(
         (log) =>
           log.endpoint.toLowerCase().includes(keyword) ||
-          (log.errorMessage && log.errorMessage.toLowerCase().includes(keyword)) ||
+          (log.errorMessage &&
+            log.errorMessage.toLowerCase().includes(keyword)) ||
           (log.serverName && log.serverName.toLowerCase().includes(keyword)) ||
-          log.traceId.toLowerCase().includes(keyword),
-      )
+          log.traceId.toLowerCase().includes(keyword)
+      );
     }
     if (errorSearchParams.severity !== "all") {
-      filteredError = filteredError.filter((log) => log.severity === errorSearchParams.severity)
+      filteredError = filteredError.filter(
+        (log) => log.severity === errorSearchParams.severity
+      );
     }
     if (errorSearchParams.dateRange !== "all") {
-      filteredError = filterByDateRange(filteredError, errorSearchParams.dateRange)
+      filteredError = filterByDateRange(
+        filteredError,
+        errorSearchParams.dateRange
+      );
     }
-    setFilteredErrorLogs(filteredError)
-  }
+    setFilteredErrorLogs(filteredError);
+  };
 
   // 날짜 범위로 필터링하는 헬퍼 함수
-  const filterByDateRange = <T extends { timestamp: string }>(logs: T[], dateRange: string): T[] => {
-    const now = new Date()
-    const filterDate = new Date()
+  const filterByDateRange = <T extends { timestamp: string }>(
+    logs: T[],
+    dateRange: string
+  ): T[] => {
+    const now = new Date();
+    const filterDate = new Date();
 
     switch (dateRange) {
       case "hour":
-        filterDate.setHours(now.getHours() - 1)
-        break
+        filterDate.setHours(now.getHours() - 1);
+        break;
       case "today":
-        filterDate.setHours(0, 0, 0, 0)
-        break
+        filterDate.setHours(0, 0, 0, 0);
+        break;
       case "week":
-        filterDate.setDate(now.getDate() - 7)
-        break
+        filterDate.setDate(now.getDate() - 7);
+        break;
       case "month":
-        filterDate.setMonth(now.getMonth() - 1)
-        break
+        filterDate.setMonth(now.getMonth() - 1);
+        break;
     }
 
     return logs.filter((log) => {
-      const logDate = new Date(log.timestamp)
-      return logDate >= filterDate
-    })
-  }
+      const logDate = new Date(log.timestamp);
+      return logDate >= filterDate;
+    });
+  };
 
   // 검색 파라미터 변경 핸들러
   const handleApiSearchParamChange = (name: string, value: string) => {
-    setApiSearchParams((prev) => ({ ...prev, [name]: value }))
-  }
+    setApiSearchParams((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleLoginSearchParamChange = (name: string, value: string) => {
-    setLoginSearchParams((prev) => ({ ...prev, [name]: value }))
-  }
+    setLoginSearchParams((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleTransactionSearchParamChange = (name: string, value: string) => {
-    setTransactionSearchParams((prev) => ({ ...prev, [name]: value }))
-  }
+    setTransactionSearchParams((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleErrorSearchParamChange = (name: string, value: string) => {
-    setErrorSearchParams((prev) => ({ ...prev, [name]: value }))
-  }
+    setErrorSearchParams((prev) => ({ ...prev, [name]: value }));
+  };
 
   // 로그 상세 보기
   const handleViewLog = (log: any, type: string) => {
     switch (type) {
       case "api":
-        setSelectedApiLog(log)
-        break
+        setSelectedApiLog(log);
+        break;
       case "login":
-        setSelectedLoginLog(log)
-        break
+        setSelectedLoginLog(log);
+        break;
       case "transaction":
-        setSelectedTransactionLog(log)
-        break
+        setSelectedTransactionLog(log);
+        break;
       case "error":
-        setSelectedErrorLog(log)
-        break
+        setSelectedErrorLog(log);
+        break;
     }
-    setIsDetailOpen(true)
-  }
+    setIsDetailOpen(true);
+  };
 
   // 로그 설정 저장
   const handleSaveSettings = async () => {
@@ -407,21 +475,21 @@ export function SystemLogContent() {
       toast({
         title: "설정 저장 완료",
         description: "로그 설정이 저장되었습니다.",
-      })
-      setIsSettingsOpen(false)
+      });
+      setIsSettingsOpen(false);
     } catch (error) {
-      console.error("로그 설정 저장 중 오류 발생:", error)
+      console.error("로그 설정 저장 중 오류 발생:", error);
       toast({
         title: "설정 저장 실패",
         description: "로그 설정 저장 중 오류가 발생했습니다.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   // 날짜 포맷 함수
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString("ko-KR", {
       year: "numeric",
       month: "2-digit",
@@ -429,44 +497,70 @@ export function SystemLogContent() {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-    })
-  }
+    });
+  };
 
-  // HTTP 상태 코드에 따른 배지 색상
+  // HTTP 상태 코드에 따른 배지 색상 (api)
   const getStatusBadge = (status: number) => {
     if (status >= 200 && status < 300) {
-      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">{status}</Badge>
+      return (
+        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+          {status}
+        </Badge>
+      );
     } else if (status >= 400 && status < 500) {
-      return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{status}</Badge>
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+          {status}
+        </Badge>
+      );
     } else if (status >= 500) {
-      return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{status}</Badge>
+      return (
+        <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+          {status}
+        </Badge>
+      );
     } else {
-      return <Badge>{status}</Badge>
+      return <Badge>{status}</Badge>;
     }
-  }
+  };
 
   // 로그인 성공/실패 배지
   const getLoginStatusBadge = (success: boolean) => {
     return success ? (
-      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">성공</Badge>
+      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+        성공
+      </Badge>
     ) : (
       <Badge className="bg-red-100 text-red-800 hover:bg-red-100">실패</Badge>
-    )
-  }
+    );
+  };
 
   // 트랜잭션 상태 배지
   const getTransactionStatusBadge = (status: string) => {
     switch (status) {
       case "SUCCESS":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">성공</Badge>
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            성공
+          </Badge>
+        );
       case "PENDING":
-        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">대기</Badge>
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+            대기
+          </Badge>
+        );
       case "FAILURE":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">실패</Badge>
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+            실패
+          </Badge>
+        );
       default:
-        return <Badge>{status}</Badge>
+        return <Badge>{status}</Badge>;
     }
-  }
+  };
 
   // 에러 심각도 배지
   const getSeverityBadge = (severity: string) => {
@@ -476,29 +570,29 @@ export function SystemLogContent() {
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 flex items-center gap-1">
             <Info className="h-3 w-3" /> INFO
           </Badge>
-        )
+        );
       case "WARN":
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 flex items-center gap-1">
             <AlertTriangle className="h-3 w-3" /> WARN
           </Badge>
-        )
+        );
       case "ERROR":
         return (
           <Badge className="bg-red-100 text-red-800 hover:bg-red-100 flex items-center gap-1">
             <AlertCircle className="h-3 w-3" /> ERROR
           </Badge>
-        )
+        );
       case "FATAL":
         return (
           <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 flex items-center gap-1">
             <XCircle className="h-3 w-3" /> FATAL
           </Badge>
-        )
+        );
       default:
-        return <Badge>{severity}</Badge>
+        return <Badge>{severity}</Badge>;
     }
-  }
+  };
 
   // 트랜잭션 타입 배지
   const getTransactionTypeBadge = (type: string) => {
@@ -508,53 +602,57 @@ export function SystemLogContent() {
           <Badge variant="outline" className="text-green-600">
             입금
           </Badge>
-        )
+        );
       case "WITHDRAW":
         return (
           <Badge variant="outline" className="text-red-600">
             출금
           </Badge>
-        )
+        );
       case "PURCHASE":
         return (
           <Badge variant="outline" className="text-blue-600">
             구매
           </Badge>
-        )
+        );
       case "REFUND":
         return (
           <Badge variant="outline" className="text-yellow-600">
             환불
           </Badge>
-        )
+        );
       case "CONVERT":
         return (
           <Badge variant="outline" className="text-purple-600">
             전환
           </Badge>
-        )
+        );
       case "RECEIVE":
         return (
           <Badge variant="outline" className="text-indigo-600">
             수신
           </Badge>
-        )
+        );
       default:
-        return <Badge variant="outline">{type}</Badge>
+        return <Badge variant="outline">{type}</Badge>;
     }
-  }
+  };
 
   // API 로그 테이블 컬럼
   const apiColumns = [
     {
       key: "endpoint",
       header: "엔드포인트",
-      cell: (log: ApiRequestLog) => <span className="font-medium">{log.endpoint}</span>,
+      cell: (log: ApiRequestLog) => (
+        <span className="font-medium">{log.endpoint}</span>
+      ),
     },
     {
       key: "method",
       header: "메서드",
-      cell: (log: ApiRequestLog) => <Badge variant="outline">{log.method}</Badge>,
+      cell: (log: ApiRequestLog) => (
+        <Badge variant="outline">{log.method}</Badge>
+      ),
     },
     {
       key: "status",
@@ -582,20 +680,28 @@ export function SystemLogContent() {
       key: "actions",
       header: "",
       cell: (log: ApiRequestLog) => (
-        <Button variant="ghost" size="sm" onClick={() => handleViewLog(log, "api")}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleViewLog(log, "api")}
+        >
           상세
         </Button>
       ),
       className: "text-right",
     },
-  ]
+  ];
 
   // 로그인 로그 테이블 컬럼
   const loginColumns = [
     {
       key: "event",
       header: "이벤트",
-      cell: (log: LoginLog) => <Badge variant="outline">{log.event === "LOGIN" ? "로그인" : "로그아웃"}</Badge>,
+      cell: (log: LoginLog) => (
+        <Badge variant="outline">
+          {log.event === "LOGIN" ? "로그인" : "로그아웃"}
+        </Badge>
+      ),
     },
     {
       key: "status",
@@ -622,30 +728,37 @@ export function SystemLogContent() {
       key: "actions",
       header: "",
       cell: (log: LoginLog) => (
-        <Button variant="ghost" size="sm" onClick={() => handleViewLog(log, "login")}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleViewLog(log, "login")}
+        >
           상세
         </Button>
       ),
       className: "text-right",
     },
-  ]
+  ];
 
   // 트랜잭션 로그 테이블 컬럼
   const transactionColumns = [
     {
       key: "type",
       header: "유형",
-      cell: (log: TransactionLog) => log.type && getTransactionTypeBadge(log.type),
+      cell: (log: TransactionLog) =>
+        log.type && getTransactionTypeBadge(log.type),
     },
     {
       key: "amount",
       header: "금액",
-      cell: (log: TransactionLog) => (log.amount ? new Intl.NumberFormat("ko-KR").format(log.amount) : "-"),
+      cell: (log: TransactionLog) =>
+        log.amount ? new Intl.NumberFormat("ko-KR").format(log.amount) : "-",
     },
     {
       key: "status",
       header: "상태",
-      cell: (log: TransactionLog) => log.status && getTransactionStatusBadge(log.status),
+      cell: (log: TransactionLog) =>
+        log.status && getTransactionStatusBadge(log.status),
     },
     {
       key: "walletId",
@@ -662,20 +775,25 @@ export function SystemLogContent() {
       key: "actions",
       header: "",
       cell: (log: TransactionLog) => (
-        <Button variant="ghost" size="sm" onClick={() => handleViewLog(log, "transaction")}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleViewLog(log, "transaction")}
+        >
           상세
         </Button>
       ),
       className: "text-right",
     },
-  ]
+  ];
 
   // 에러 로그 테이블 컬럼
   const errorColumns = [
     {
       key: "severity",
       header: "심각도",
-      cell: (log: SystemErrorLog) => log.severity && getSeverityBadge(log.severity),
+      cell: (log: SystemErrorLog) =>
+        log.severity && getSeverityBadge(log.severity),
     },
     {
       key: "endpoint",
@@ -685,7 +803,9 @@ export function SystemLogContent() {
     {
       key: "errorMessage",
       header: "에러 메시지",
-      cell: (log: SystemErrorLog) => <div className="max-w-xs truncate">{log.errorMessage || "-"}</div>,
+      cell: (log: SystemErrorLog) => (
+        <div className="max-w-xs truncate">{log.errorMessage || "-"}</div>
+      ),
     },
     {
       key: "serverName",
@@ -702,13 +822,17 @@ export function SystemLogContent() {
       key: "actions",
       header: "",
       cell: (log: SystemErrorLog) => (
-        <Button variant="ghost" size="sm" onClick={() => handleViewLog(log, "error")}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleViewLog(log, "error")}
+        >
           상세
         </Button>
       ),
       className: "text-right",
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -725,17 +849,20 @@ export function SystemLogContent() {
                 activeTab === "api"
                   ? apiSearchParams.keyword
                   : activeTab === "login"
-                    ? loginSearchParams.keyword
-                    : activeTab === "transaction"
-                      ? transactionSearchParams.keyword
-                      : errorSearchParams.keyword
+                  ? loginSearchParams.keyword
+                  : activeTab === "transaction"
+                  ? transactionSearchParams.keyword
+                  : errorSearchParams.keyword
               }
               onChange={(e) => {
-                const value = e.target.value
-                if (activeTab === "api") handleApiSearchParamChange("keyword", value)
-                else if (activeTab === "login") handleLoginSearchParamChange("keyword", value)
-                else if (activeTab === "transaction") handleTransactionSearchParamChange("keyword", value)
-                else handleErrorSearchParamChange("keyword", value)
+                const value = e.target.value;
+                if (activeTab === "api")
+                  handleApiSearchParamChange("keyword", value);
+                else if (activeTab === "login")
+                  handleLoginSearchParamChange("keyword", value);
+                else if (activeTab === "transaction")
+                  handleTransactionSearchParamChange("keyword", value);
+                else handleErrorSearchParamChange("keyword", value);
               }}
             />
           </div>
@@ -745,16 +872,19 @@ export function SystemLogContent() {
                 activeTab === "api"
                   ? apiSearchParams.dateRange
                   : activeTab === "login"
-                    ? loginSearchParams.dateRange
-                    : activeTab === "transaction"
-                      ? transactionSearchParams.dateRange
-                      : errorSearchParams.dateRange
+                  ? loginSearchParams.dateRange
+                  : activeTab === "transaction"
+                  ? transactionSearchParams.dateRange
+                  : errorSearchParams.dateRange
               }
               onValueChange={(value) => {
-                if (activeTab === "api") handleApiSearchParamChange("dateRange", value)
-                else if (activeTab === "login") handleLoginSearchParamChange("dateRange", value)
-                else if (activeTab === "transaction") handleTransactionSearchParamChange("dateRange", value)
-                else handleErrorSearchParamChange("dateRange", value)
+                if (activeTab === "api")
+                  handleApiSearchParamChange("dateRange", value);
+                else if (activeTab === "login")
+                  handleLoginSearchParamChange("dateRange", value);
+                else if (activeTab === "transaction")
+                  handleTransactionSearchParamChange("dateRange", value);
+                else handleErrorSearchParamChange("dateRange", value);
               }}
             >
               <SelectTrigger className="w-[130px]">
@@ -774,7 +904,9 @@ export function SystemLogContent() {
               <>
                 <Select
                   value={apiSearchParams.method}
-                  onValueChange={(value) => handleApiSearchParamChange("method", value)}
+                  onValueChange={(value) =>
+                    handleApiSearchParamChange("method", value)
+                  }
                 >
                   <SelectTrigger className="w-[130px]">
                     <SelectValue placeholder="메서드" />
@@ -789,7 +921,9 @@ export function SystemLogContent() {
                 </Select>
                 <Select
                   value={apiSearchParams.status}
-                  onValueChange={(value) => handleApiSearchParamChange("status", value)}
+                  onValueChange={(value) =>
+                    handleApiSearchParamChange("status", value)
+                  }
                 >
                   <SelectTrigger className="w-[130px]">
                     <SelectValue placeholder="상태" />
@@ -815,7 +949,9 @@ export function SystemLogContent() {
               <>
                 <Select
                   value={loginSearchParams.event}
-                  onValueChange={(value) => handleLoginSearchParamChange("event", value)}
+                  onValueChange={(value) =>
+                    handleLoginSearchParamChange("event", value)
+                  }
                 >
                   <SelectTrigger className="w-[130px]">
                     <SelectValue placeholder="이벤트" />
@@ -828,7 +964,9 @@ export function SystemLogContent() {
                 </Select>
                 <Select
                   value={loginSearchParams.success}
-                  onValueChange={(value) => handleLoginSearchParamChange("success", value)}
+                  onValueChange={(value) =>
+                    handleLoginSearchParamChange("success", value)
+                  }
                 >
                   <SelectTrigger className="w-[130px]">
                     <SelectValue placeholder="상태" />
@@ -847,7 +985,9 @@ export function SystemLogContent() {
               <>
                 <Select
                   value={transactionSearchParams.type}
-                  onValueChange={(value) => handleTransactionSearchParamChange("type", value)}
+                  onValueChange={(value) =>
+                    handleTransactionSearchParamChange("type", value)
+                  }
                 >
                   <SelectTrigger className="w-[130px]">
                     <SelectValue placeholder="유형" />
@@ -864,7 +1004,9 @@ export function SystemLogContent() {
                 </Select>
                 <Select
                   value={transactionSearchParams.status}
-                  onValueChange={(value) => handleTransactionSearchParamChange("status", value)}
+                  onValueChange={(value) =>
+                    handleTransactionSearchParamChange("status", value)
+                  }
                 >
                   <SelectTrigger className="w-[130px]">
                     <SelectValue placeholder="상태" />
@@ -883,7 +1025,9 @@ export function SystemLogContent() {
             {activeTab === "error" && (
               <Select
                 value={errorSearchParams.severity}
-                onValueChange={(value) => handleErrorSearchParamChange("severity", value)}
+                onValueChange={(value) =>
+                  handleErrorSearchParamChange("severity", value)
+                }
               >
                 <SelectTrigger className="w-[130px]">
                   <SelectValue placeholder="심각도" />
@@ -904,7 +1048,11 @@ export function SystemLogContent() {
           <Button variant="outline" className="gap-1">
             <Download className="h-4 w-4" /> 내보내기
           </Button>
-          <Button variant="outline" className="gap-1" onClick={() => setIsSettingsOpen(true)}>
+          <Button
+            variant="outline"
+            className="gap-1"
+            onClick={() => setIsSettingsOpen(true)}
+          >
             <Settings className="h-4 w-4" /> 설정
           </Button>
         </div>
@@ -912,14 +1060,19 @@ export function SystemLogContent() {
 
       <div className="flex items-center gap-4">
         <div className="flex items-center space-x-2">
-          <Switch id="realtime" checked={showRealtime} onCheckedChange={setShowRealtime} />
+          <Switch
+            id="realtime"
+            checked={showRealtime}
+            onCheckedChange={setShowRealtime}
+          />
           <Label htmlFor="realtime" className="text-sm">
             실시간 로그 모니터링
           </Label>
         </div>
         {showRealtime && (
           <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span> 실시간 모니터링 중
+            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>{" "}
+            실시간 모니터링 중
           </Badge>
         )}
       </div>
@@ -942,13 +1095,21 @@ export function SystemLogContent() {
 
         <TabsContent value="api">
           <Card className="overflow-hidden">
-            <ResponsiveTable data={filteredApiLogs} columns={apiColumns} emptyMessage="API 요청 로그가 없습니다." />
+            <ResponsiveTable
+              data={filteredApiLogs}
+              columns={apiColumns}
+              emptyMessage="API 요청 로그가 없습니다."
+            />
           </Card>
         </TabsContent>
 
         <TabsContent value="login">
           <Card className="overflow-hidden">
-            <ResponsiveTable data={filteredLoginLogs} columns={loginColumns} emptyMessage="로그인 로그가 없습니다." />
+            <ResponsiveTable
+              data={filteredLoginLogs}
+              columns={loginColumns}
+              emptyMessage="로그인 로그가 없습니다."
+            />
           </Card>
         </TabsContent>
 
@@ -974,7 +1135,10 @@ export function SystemLogContent() {
       </Tabs>
 
       {/* API 로그 상세 다이얼로그 */}
-      <Dialog open={isDetailOpen && !!selectedApiLog} onOpenChange={(open) => !open && setSelectedApiLog(null)}>
+      <Dialog
+        open={isDetailOpen && !!selectedApiLog}
+        onOpenChange={(open) => !open && setSelectedApiLog(null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>API 요청 로그 상세</DialogTitle>
@@ -990,7 +1154,9 @@ export function SystemLogContent() {
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">엔드포인트</div>
-                <div className="col-span-3 font-mono text-sm">{selectedApiLog.endpoint}</div>
+                <div className="col-span-3 font-mono text-sm">
+                  {selectedApiLog.endpoint}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
@@ -1002,12 +1168,16 @@ export function SystemLogContent() {
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">상태 코드</div>
-                <div className="col-span-3">{getStatusBadge(selectedApiLog.responseStatus)}</div>
+                <div className="col-span-3">
+                  {getStatusBadge(selectedApiLog.responseStatus)}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">응답 시간</div>
-                <div className="col-span-3">{selectedApiLog.responseTimeMs}ms</div>
+                <div className="col-span-3">
+                  {selectedApiLog.responseTimeMs}ms
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
@@ -1022,12 +1192,16 @@ export function SystemLogContent() {
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">추적 ID</div>
-                <div className="col-span-3 font-mono text-sm">{selectedApiLog.traceId}</div>
+                <div className="col-span-3 font-mono text-sm">
+                  {selectedApiLog.traceId}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">시간</div>
-                <div className="col-span-3">{formatDate(selectedApiLog.timestamp)}</div>
+                <div className="col-span-3">
+                  {formatDate(selectedApiLog.timestamp)}
+                </div>
               </div>
 
               {selectedApiLog.queryParams && (
@@ -1059,11 +1233,16 @@ export function SystemLogContent() {
       </Dialog>
 
       {/* 로그인 로그 상세 다이얼로그 */}
-      <Dialog open={isDetailOpen && !!selectedLoginLog} onOpenChange={(open) => !open && setSelectedLoginLog(null)}>
+      <Dialog
+        open={isDetailOpen && !!selectedLoginLog}
+        onOpenChange={(open) => !open && setSelectedLoginLog(null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>로그인 로그 상세</DialogTitle>
-            <DialogDescription>로그인 이벤트의 상세 정보입니다.</DialogDescription>
+            <DialogDescription>
+              로그인 이벤트의 상세 정보입니다.
+            </DialogDescription>
           </DialogHeader>
 
           {selectedLoginLog && (
@@ -1076,23 +1255,31 @@ export function SystemLogContent() {
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">이벤트</div>
                 <div className="col-span-3">
-                  <Badge variant="outline">{selectedLoginLog.event === "LOGIN" ? "로그인" : "로그아웃"}</Badge>
+                  <Badge variant="outline">
+                    {selectedLoginLog.event === "LOGIN" ? "로그인" : "로그아웃"}
+                  </Badge>
                 </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">상태</div>
-                <div className="col-span-3">{getLoginStatusBadge(selectedLoginLog.success)}</div>
+                <div className="col-span-3">
+                  {getLoginStatusBadge(selectedLoginLog.success)}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">사용자 ID</div>
-                <div className="col-span-3">{selectedLoginLog.userId || "-"}</div>
+                <div className="col-span-3">
+                  {selectedLoginLog.userId || "-"}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">판매자 ID</div>
-                <div className="col-span-3">{selectedLoginLog.merchantId || "-"}</div>
+                <div className="col-span-3">
+                  {selectedLoginLog.merchantId || "-"}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
@@ -1102,25 +1289,33 @@ export function SystemLogContent() {
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">추적 ID</div>
-                <div className="col-span-3 font-mono text-sm">{selectedLoginLog.traceId}</div>
+                <div className="col-span-3 font-mono text-sm">
+                  {selectedLoginLog.traceId}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">시간</div>
-                <div className="col-span-3">{formatDate(selectedLoginLog.timestamp)}</div>
+                <div className="col-span-3">
+                  {formatDate(selectedLoginLog.timestamp)}
+                </div>
               </div>
 
               {selectedLoginLog.userAgent && (
                 <div className="grid grid-cols-4 items-start gap-4">
                   <div className="font-semibold">사용자 에이전트</div>
-                  <div className="col-span-3 text-sm break-all">{selectedLoginLog.userAgent}</div>
+                  <div className="col-span-3 text-sm break-all">
+                    {selectedLoginLog.userAgent}
+                  </div>
                 </div>
               )}
 
               {selectedLoginLog.reason && (
                 <div className="grid grid-cols-4 items-start gap-4">
                   <div className="font-semibold">실패 사유</div>
-                  <div className="col-span-3 text-sm text-red-600">{selectedLoginLog.reason}</div>
+                  <div className="col-span-3 text-sm text-red-600">
+                    {selectedLoginLog.reason}
+                  </div>
                 </div>
               )}
             </div>
@@ -1155,7 +1350,8 @@ export function SystemLogContent() {
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">유형</div>
                 <div className="col-span-3">
-                  {selectedTransactionLog.type && getTransactionTypeBadge(selectedTransactionLog.type)}
+                  {selectedTransactionLog.type &&
+                    getTransactionTypeBadge(selectedTransactionLog.type)}
                 </div>
               </div>
 
@@ -1163,7 +1359,9 @@ export function SystemLogContent() {
                 <div className="font-semibold">금액</div>
                 <div className="col-span-3 font-medium">
                   {selectedTransactionLog.amount
-                    ? new Intl.NumberFormat("ko-KR").format(selectedTransactionLog.amount)
+                    ? new Intl.NumberFormat("ko-KR").format(
+                        selectedTransactionLog.amount
+                      )
                     : "-"}
                 </div>
               </div>
@@ -1171,48 +1369,64 @@ export function SystemLogContent() {
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">상태</div>
                 <div className="col-span-3">
-                  {selectedTransactionLog.status && getTransactionStatusBadge(selectedTransactionLog.status)}
+                  {selectedTransactionLog.status &&
+                    getTransactionStatusBadge(selectedTransactionLog.status)}
                 </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">지갑 ID</div>
-                <div className="col-span-3">{selectedTransactionLog.walletId || "-"}</div>
+                <div className="col-span-3">
+                  {selectedTransactionLog.walletId || "-"}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">트랜잭션 해시</div>
-                <div className="col-span-3 font-mono text-sm break-all">{selectedTransactionLog.txHash || "-"}</div>
+                <div className="col-span-3 font-mono text-sm break-all">
+                  {selectedTransactionLog.txHash || "-"}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">추적 ID</div>
-                <div className="col-span-3 font-mono text-sm">{selectedTransactionLog.traceId}</div>
+                <div className="col-span-3 font-mono text-sm">
+                  {selectedTransactionLog.traceId}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">시간</div>
-                <div className="col-span-3">{formatDate(selectedTransactionLog.timestamp)}</div>
+                <div className="col-span-3">
+                  {formatDate(selectedTransactionLog.timestamp)}
+                </div>
               </div>
 
               {selectedTransactionLog.description && (
                 <div className="grid grid-cols-4 items-start gap-4">
                   <div className="font-semibold">설명</div>
-                  <div className="col-span-3 text-sm">{selectedTransactionLog.description}</div>
+                  <div className="col-span-3 text-sm">
+                    {selectedTransactionLog.description}
+                  </div>
                 </div>
               )}
 
               {selectedTransactionLog.failureReason && (
                 <div className="grid grid-cols-4 items-start gap-4">
                   <div className="font-semibold">실패 사유</div>
-                  <div className="col-span-3 text-sm text-red-600">{selectedTransactionLog.failureReason}</div>
+                  <div className="col-span-3 text-sm text-red-600">
+                    {selectedTransactionLog.failureReason}
+                  </div>
                 </div>
               )}
             </div>
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedTransactionLog(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedTransactionLog(null)}
+            >
               닫기
             </Button>
           </DialogFooter>
@@ -1220,11 +1434,16 @@ export function SystemLogContent() {
       </Dialog>
 
       {/* 에러 로그 상세 다이얼로그 */}
-      <Dialog open={isDetailOpen && !!selectedErrorLog} onOpenChange={(open) => !open && setSelectedErrorLog(null)}>
+      <Dialog
+        open={isDetailOpen && !!selectedErrorLog}
+        onOpenChange={(open) => !open && setSelectedErrorLog(null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>시스템 에러 로그 상세</DialogTitle>
-            <DialogDescription>시스템 에러의 상세 정보입니다.</DialogDescription>
+            <DialogDescription>
+              시스템 에러의 상세 정보입니다.
+            </DialogDescription>
           </DialogHeader>
 
           {selectedErrorLog && (
@@ -1237,39 +1456,52 @@ export function SystemLogContent() {
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">심각도</div>
                 <div className="col-span-3">
-                  {selectedErrorLog.severity && getSeverityBadge(selectedErrorLog.severity)}
+                  {selectedErrorLog.severity &&
+                    getSeverityBadge(selectedErrorLog.severity)}
                 </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">엔드포인트</div>
-                <div className="col-span-3 font-mono text-sm">{selectedErrorLog.endpoint}</div>
+                <div className="col-span-3 font-mono text-sm">
+                  {selectedErrorLog.endpoint}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">서버</div>
-                <div className="col-span-3">{selectedErrorLog.serverName || "-"}</div>
+                <div className="col-span-3">
+                  {selectedErrorLog.serverName || "-"}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">사용자 ID</div>
-                <div className="col-span-3">{selectedErrorLog.userId || "-"}</div>
+                <div className="col-span-3">
+                  {selectedErrorLog.userId || "-"}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">추적 ID</div>
-                <div className="col-span-3 font-mono text-sm">{selectedErrorLog.traceId}</div>
+                <div className="col-span-3 font-mono text-sm">
+                  {selectedErrorLog.traceId}
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="font-semibold">시간</div>
-                <div className="col-span-3">{formatDate(selectedErrorLog.timestamp)}</div>
+                <div className="col-span-3">
+                  {formatDate(selectedErrorLog.timestamp)}
+                </div>
               </div>
 
               {selectedErrorLog.errorMessage && (
                 <div className="grid grid-cols-4 items-start gap-4">
                   <div className="font-semibold">에러 메시지</div>
-                  <div className="col-span-3 text-sm text-red-600">{selectedErrorLog.errorMessage}</div>
+                  <div className="col-span-3 text-sm text-red-600">
+                    {selectedErrorLog.errorMessage}
+                  </div>
                 </div>
               )}
 
@@ -1297,7 +1529,9 @@ export function SystemLogContent() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>로그 설정</DialogTitle>
-            <DialogDescription>시스템 로그 설정을 관리합니다.</DialogDescription>
+            <DialogDescription>
+              시스템 로그 설정을 관리합니다.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="py-4 space-y-6">
@@ -1305,7 +1539,12 @@ export function SystemLogContent() {
               <Label htmlFor="retention">로그 보관 기간 (일)</Label>
               <Select
                 value={logSettings.retention.toString()}
-                onValueChange={(value) => setLogSettings({ ...logSettings, retention: Number.parseInt(value) })}
+                onValueChange={(value) =>
+                  setLogSettings({
+                    ...logSettings,
+                    retention: Number.parseInt(value),
+                  })
+                }
               >
                 <SelectTrigger id="retention">
                   <SelectValue placeholder="보관 기간 선택" />
@@ -1320,7 +1559,9 @@ export function SystemLogContent() {
                   <SelectItem value="365">365일</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-sm text-muted-foreground">지정된 기간이 지난 로그는 자동으로 삭제됩니다.</p>
+              <p className="text-sm text-muted-foreground">
+                지정된 기간이 지난 로그는 자동으로 삭제됩니다.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -1329,17 +1570,26 @@ export function SystemLogContent() {
                 <Switch
                   id="autoDelete"
                   checked={logSettings.autoDeleteEnabled}
-                  onCheckedChange={(checked) => setLogSettings({ ...logSettings, autoDeleteEnabled: checked })}
+                  onCheckedChange={(checked) =>
+                    setLogSettings({
+                      ...logSettings,
+                      autoDeleteEnabled: checked,
+                    })
+                  }
                 />
               </div>
-              <p className="text-sm text-muted-foreground">보관 기간이 지난 로그를 자동으로 삭제합니다.</p>
+              <p className="text-sm text-muted-foreground">
+                보관 기간이 지난 로그를 자동으로 삭제합니다.
+              </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="logLevel">로그 레벨</Label>
               <Select
                 value={logSettings.logLevel}
-                onValueChange={(value: any) => setLogSettings({ ...logSettings, logLevel: value })}
+                onValueChange={(value: any) =>
+                  setLogSettings({ ...logSettings, logLevel: value })
+                }
               >
                 <SelectTrigger id="logLevel">
                   <SelectValue placeholder="로그 레벨 선택" />
@@ -1352,7 +1602,9 @@ export function SystemLogContent() {
                   <SelectItem value="ERROR">ERROR (에러만)</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-sm text-muted-foreground">지정된 레벨 이상의 로그만 저장합니다.</p>
+              <p className="text-sm text-muted-foreground">
+                지정된 레벨 이상의 로그만 저장합니다.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -1361,10 +1613,17 @@ export function SystemLogContent() {
                 <Switch
                   id="notification"
                   checked={logSettings.notificationEnabled}
-                  onCheckedChange={(checked) => setLogSettings({ ...logSettings, notificationEnabled: checked })}
+                  onCheckedChange={(checked) =>
+                    setLogSettings({
+                      ...logSettings,
+                      notificationEnabled: checked,
+                    })
+                  }
                 />
               </div>
-              <p className="text-sm text-muted-foreground">중요 로그 발생 시 알림을 받습니다.</p>
+              <p className="text-sm text-muted-foreground">
+                중요 로그 발생 시 알림을 받습니다.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -1373,11 +1632,18 @@ export function SystemLogContent() {
                 <Switch
                   id="errorOnly"
                   checked={logSettings.errorNotificationOnly}
-                  onCheckedChange={(checked) => setLogSettings({ ...logSettings, errorNotificationOnly: checked })}
+                  onCheckedChange={(checked) =>
+                    setLogSettings({
+                      ...logSettings,
+                      errorNotificationOnly: checked,
+                    })
+                  }
                   disabled={!logSettings.notificationEnabled}
                 />
               </div>
-              <p className="text-sm text-muted-foreground">에러 로그에 대해서만 알림을 받습니다.</p>
+              <p className="text-sm text-muted-foreground">
+                에러 로그에 대해서만 알림을 받습니다.
+              </p>
             </div>
           </div>
 
@@ -1390,5 +1656,5 @@ export function SystemLogContent() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
