@@ -23,7 +23,8 @@ const menu = [
   { label: "인증 관리", icon: ShieldCheck, path: "/auth" },
   { label: "결제 관리", icon: CreditCard, path: "/payment" },
   { label: "판매자 관리", icon: Store, path: "/merchant" },
-  { label: "시스템 로그", icon: Terminal, path: "/logs" },
+  { label: "시스템 로그", icon: Terminal, path: "/system-logs" },
+  { label: "API 요청 로그", icon: Terminal, path: "/api-logs" },
 ];
 
 export default function Sidebar({
