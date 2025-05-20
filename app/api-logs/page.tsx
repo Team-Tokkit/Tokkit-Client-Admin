@@ -6,8 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import type { DateRange } from "react-day-picker";
-import CustomCalendar from "@/app/api-logs/components/CustomCalendar";
+import DateRangePicker from "@/app/api-logs/components/DateRangePicker";
+import "react-calendar/dist/Calendar.css";
 import {
   Popover,
   PopoverTrigger,
@@ -35,7 +35,8 @@ export interface ApiRequestLog {
   endpoint: string;
   method: string;
   responseStatus: number;
-  responseTime: number;
+  responseTime?: number;
+  responseTimeMs?: number;
   ipAddress: string;
   userId: number;
   traceId: string;
@@ -61,18 +62,21 @@ export default function ApiLogPage() {
     null
   );
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange>({});
+  const [dateRange, setDateRange] = useState<[Date, Date] | null>(null);
   const [localKeyword, setLocalKeyword] = useState(apiSearchParams.keyword);
 
   const formatDate = (date?: Date): string =>
     date ? format(date, "yyyy-MM-dd HH:mm:ss") : "";
 
-  const startDate = dateRange.from
-    ? format(dateRange.from, "yyyy-MM-dd")
-    : "2000-01-01";
-  const endDate = dateRange.to
-    ? format(dateRange.to, "yyyy-MM-dd")
-    : format(new Date(), "yyyy-MM-dd");
+  const startDate =
+    Array.isArray(dateRange) && dateRange[0]
+      ? format(dateRange[0], "yyyy-MM-dd")
+      : "2000-01-01";
+
+  const endDate =
+    Array.isArray(dateRange) && dateRange[1]
+      ? format(dateRange[1], "yyyy-MM-dd")
+      : format(new Date(), "yyyy-MM-dd");
 
   useEffect(() => {
     fetchLogs();
@@ -86,13 +90,8 @@ export default function ApiLogPage() {
       status: "all",
       dateRange: "all",
     });
-    setDateRange({});
+    setDateRange(null);
     setCurrentPage(1);
-  };
-
-  const handleSearch = () => {
-    fetchLogs();
-    fetchChartDataFromAPI();
   };
 
   const fetchLogs = async () => {
@@ -185,12 +184,12 @@ export default function ApiLogPage() {
   const handleApiSearchParamChange = (name: string, value: string) => {
     setApiSearchParams((prev) => {
       const updated = { ...prev, [name]: value };
-      console.log(updated.status);
       return updated;
     });
 
     setCurrentPage(1);
   };
+
   const handleViewLog = async (log: ApiRequestLog) => {
     try {
       const response = await fetchApiLogDetail(log.id);
@@ -304,38 +303,32 @@ export default function ApiLogPage() {
                   id="date"
                   variant="outline"
                   className={cn(
-                    "w-[250px] justify-start text-left font-normal",
-                    !dateRange.from ? "text-muted-foreground" : ""
+                    "w-[130px] justify-start text-left font-normal",
+                    !Array.isArray(dateRange) || !dateRange[0]
+                      ? "text-muted-foreground"
+                      : ""
                   )}
                 >
-                  {dateRange?.from && dateRange?.to
-                    ? `${format(dateRange.from, "yyyy-MM-dd")} ~ ${format(
-                        dateRange.to,
+                  {Array.isArray(dateRange) && dateRange[0] && dateRange[1]
+                    ? `${format(dateRange[0], "yyyy-MM-dd")} ~ ${format(
+                        dateRange[1],
                         "yyyy-MM-dd"
                       )}`
                     : "기간 선택"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <CustomCalendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={(range: DateRange | undefined) => {
-                    const safeRange: DateRange = range ?? {};
-                    setDateRange(safeRange);
-                    if (safeRange.from && safeRange.to) {
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={(value) => {
+                    if (Array.isArray(value)) {
+                      setDateRange(value as [Date, Date]);
                       setApiSearchParams((prev) => ({
                         ...prev,
                         dateRange: "custom",
                       }));
                     }
                   }}
-                  disabled={(date) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return date > today;
-                  }}
-                  numberOfMonths={2}
                 />
               </PopoverContent>
             </Popover>
