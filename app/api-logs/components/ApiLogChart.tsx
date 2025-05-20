@@ -19,6 +19,12 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+import type { ApiRequestLog } from "@/app/api-logs/page";
+
+interface ApiChartRawItem {
+  label: string;
+  avgResponseTime: number;
+}
 
 // 백엔드에서 전달하는 데이터 구조에 맞게 수정된 인터페이스
 export interface ApiRequestLogChartData {
@@ -46,38 +52,11 @@ export interface ApiRequestLogChartData {
   ];
 }
 
-export function ApiLogChart({ data }: { data: ApiRequestLogChartData[] }) {
-  console.log(data);
+export function ApiLogChart({ data }: { data: ApiRequestLogChartData }) {
   const chartData = {
-    labels: data.labels, // 이미 'labels'가 전달되었으므로 그대로 사용
-    datasets: data.datasets, // 이미 'datasets'이 제공되었으므로 그대로 사용
+    labels: data.labels,
+    datasets: data.datasets,
   };
-  // const chartData = {
-  //   labels: data.map((item) => item.label), // 'label'을 X축 레이블로 사용
-  //   datasets: [
-  //     {
-  //       type: "bar" as const,
-  //       label: "평균 응답 시간 (ms)",
-  //       data: data.map((item) => item.avgResponseTime), // 평균 응답 시간을 Y축 데이터로 사용
-  //       backgroundColor: "#3b82f6",
-  //       yAxisID: "y",
-  //       barThickness: 8,
-  //       maxBarThickness: 10,
-  //     },
-  //     {
-  //       type: "line" as const,
-  //       label: "요청 수",
-  //       data: data.map((item) => item.count), // 요청 수를 Y축 데이터로 사용
-  //       borderColor: "#facc15",
-  //       backgroundColor: "#fef9c3",
-  //       borderWidth: 2,
-  //       fill: true,
-  //       yAxisID: "y1",
-  //       tension: 0.3,
-  //       pointRadius: 2,
-  //     },
-  //   ],
-  // };
 
   const options = {
     responsive: true,
@@ -110,8 +89,9 @@ export function ApiLogChart({ data }: { data: ApiRequestLogChartData[] }) {
     <div className="w-full overflow-x-auto">
       <div
         style={{
-          width: "100%", // 너비를 100%로 설정하여 부모 요소에 맞게 조정
-          height: "300px", // 높이를 고정값으로 설정
+          minWidth: "100%",
+          width: `${Math.max(data.labels.length * 80, 800)}px`,
+          height: "300px",
         }}
       >
         <Chart type="bar" data={chartData} options={options} />
@@ -120,15 +100,12 @@ export function ApiLogChart({ data }: { data: ApiRequestLogChartData[] }) {
   );
 }
 
-function groupByEndpoint(logs: ApiRequestLog[]) {
-  if (!logs || logs.length === 0) return {};
-
+function groupByEndpoint(logs: ApiChartRawItem[]) {
   const result: Record<string, { total: number; count: number; avg: number }> =
     {};
 
   logs.forEach(({ label, avgResponseTime }) => {
     const shortEndpoint = label;
-
     if (!result[shortEndpoint]) {
       result[shortEndpoint] = { total: 0, count: 0, avg: 0 };
     }

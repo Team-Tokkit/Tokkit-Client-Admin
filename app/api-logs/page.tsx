@@ -1,9 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import type { DateRange } from "react-day-picker";
+import CustomCalendar from "@/app/api-logs/components/CustomCalendar";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+
 import {
   Select,
   SelectContent,
@@ -12,10 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, RefreshCcw } from "lucide-react";
-import { ApiLogChart } from "@/app/api-logs/components/ApiLogChart"; // 차트 컴포넌트
-import { fetchApiLogs } from "@/lib/api/api-logs"; // API 로그 데이터 가져오기
-import { fetchChartData } from "@/lib/api/api-logs"; // 차트 데이터 가져오기
+import { ApiLogChart } from "@/app/api-logs/components/ApiLogChart";
+import { fetchApiLogs } from "@/lib/api/api-logs";
+import { fetchApiLogDetail } from "@/lib/api/api-logs";
+import { fetchChartData } from "@/lib/api/api-logs";
 import { ResponsiveTable } from "@/components/responsive-table";
+import ApiLogDetail from "@/app/api-logs/components/ApiLogDetail";
 import Pagination from "@/app/api-logs/components/CustomPagination";
 
 export interface ApiRequestLog {
@@ -34,80 +46,82 @@ export interface ApiRequestLog {
 
 export default function ApiLogPage() {
   const [apiLogs, setApiLogs] = useState<ApiRequestLog[]>([]);
-  const [filteredApiLogs, setFilteredApiLogs] = useState<ApiRequestLog[]>([]);
-  const [chartData, setChartData] = useState<any>(null); // 차트 데이터를 저장할 상태
+  const [chartData, setChartData] = useState<any>(null);
   const [apiSearchParams, setApiSearchParams] = useState({
     keyword: "",
     method: "all",
     status: "all",
     dateRange: "all",
   });
-  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const rowsPerPage = 10;
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedApiLog, setSelectedApiLog] = useState<ApiRequestLog | null>(
+    null
+  );
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange>({});
+  const [localKeyword, setLocalKeyword] = useState(apiSearchParams.keyword);
 
-  function convertDateRange(range: string): {
-    startDate?: string;
-    endDate?: string;
-  } {
-    const now = new Date();
-    const start = new Date();
+  const formatDate = (date?: Date): string =>
+    date ? format(date, "yyyy-MM-dd HH:mm:ss") : "";
 
-    switch (range) {
-      case "hour":
-        start.setHours(now.getHours() - 1);
-        break;
-      case "today":
-        start.setHours(0, 0, 0, 0);
-        break;
-      case "week":
-        start.setDate(now.getDate() - 7);
-        break;
-      case "month":
-        start.setMonth(now.getMonth() - 1);
-        break;
-      case "all":
-      default:
-        return {};
-    }
-
-    const format = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    };
-
-    return {
-      startDate: format(start),
-      endDate: format(now),
-    };
-  }
-
-  const { startDate, endDate } = convertDateRange(apiSearchParams.dateRange);
+  const startDate = dateRange.from
+    ? format(dateRange.from, "yyyy-MM-dd")
+    : "2000-01-01";
+  const endDate = dateRange.to
+    ? format(dateRange.to, "yyyy-MM-dd")
+    : format(new Date(), "yyyy-MM-dd");
 
   useEffect(() => {
     fetchLogs();
-    fetchChartDataFromAPI(); // 로그와 차트 데이터를 모두 가져오기
+    fetchChartDataFromAPI();
   }, [currentPage, apiSearchParams]);
+
+  const handleResetFilters = () => {
+    setApiSearchParams({
+      keyword: "",
+      method: "all",
+      status: "all",
+      dateRange: "all",
+    });
+    setDateRange({});
+    setCurrentPage(1);
+  };
+
+  const handleSearch = () => {
+    fetchLogs();
+    fetchChartDataFromAPI();
+  };
 
   const fetchLogs = async () => {
     setIsLoading(true);
     try {
       const params = {
-        page: currentPage,
+        page: currentPage - 1,
         size: rowsPerPage,
         keyword: apiSearchParams.keyword || undefined,
         method:
           apiSearchParams.method !== "all" ? apiSearchParams.method : undefined,
-        status:
-          apiSearchParams.status !== "all" ? apiSearchParams.status : undefined,
-        ...(startDate && endDate ? { startDate, endDate } : {}),
+        startDate,
+        endDate,
+        // Todo 삼항 연산자 True False 반대로 변경 필요
+        status: ["2xx", "4xx", "5xx", "all"].includes(apiSearchParams.status)
+          ? undefined
+          : apiSearchParams.status,
       };
 
       const data = await fetchApiLogs(params);
-      setApiLogs(data.result.content || []);
-      setFilteredApiLogs(data.result.content || []);
+      const result = data.result;
+
+      const mappedLogs = result.content.map((log: any) => ({
+        ...log,
+        responseStatus: log.status,
+      }));
+
+      setApiLogs(mappedLogs);
+      setTotalPages(result.pageable.totalPages);
     } catch (error) {
       console.error("API 로그를 불러오는 중 오류:", error);
     } finally {
@@ -120,23 +134,21 @@ export default function ApiLogPage() {
       const params = {
         method:
           apiSearchParams.method !== "all" ? apiSearchParams.method : undefined,
-        status:
-          apiSearchParams.status !== "all" ? apiSearchParams.status : undefined,
-        keyword: apiSearchParams.keyword || undefined,
-        startDate: startDate || "2000-01-01", // startDate 기본값 설정
-        endDate: endDate || new Date().toISOString().slice(0, 10), // endDate 기본값 설정
+        status: ["2xx", "4xx", "5xx", "all"].includes(apiSearchParams.status)
+          ? undefined
+          : apiSearchParams.status,
+        keyword: apiSearchParams.keyword?.trim() || undefined,
+        startDate: startDate || "2000-01-01",
+        endDate: endDate || new Date().toISOString().slice(0, 10),
       };
 
-      const response = await fetchChartData(params); // 차트 데이터를 API에서 가져오기
-      console.log(response.result); // 데이터를 콘솔에 출력하여 확인
+      const response = await fetchChartData(params);
 
-      // 데이터가 없으면 차트 데이터를 초기화하고 종료
       if (!response.result || response.result.length === 0) {
-        setChartData(null); // 빈 데이터일 경우 차트 비우기
+        setChartData(null);
         return;
       }
 
-      // 백엔드에서 받은 데이터를 바로 차트 데이터에 설정
       const chartData = {
         labels: response.result.map((item: any) => item.label),
         datasets: [
@@ -146,8 +158,8 @@ export default function ApiLogPage() {
             data: response.result.map((item: any) => item.avgResponseTime),
             backgroundColor: "#3b82f6",
             yAxisID: "y",
-            barThickness: 8,
-            maxBarThickness: 10,
+            barThickness: 50,
+            maxBarThickness: 100,
           },
           {
             type: "line" as const,
@@ -171,20 +183,56 @@ export default function ApiLogPage() {
   };
 
   const handleApiSearchParamChange = (name: string, value: string) => {
-    setApiSearchParams((prev) => ({ ...prev, [name]: value }));
+    setApiSearchParams((prev) => {
+      const updated = { ...prev, [name]: value };
+      console.log(updated.status);
+      return updated;
+    });
+
     setCurrentPage(1);
   };
+  const handleViewLog = async (log: ApiRequestLog) => {
+    try {
+      const response = await fetchApiLogDetail(log.id);
+      const fixed = {
+        ...response.result,
+        responseStatus: response.result.status,
+      };
+      setSelectedApiLog(fixed);
+      setIsDetailOpen(true);
+    } catch (error) {
+      console.error("상세 로그 불러오기 실패:", error);
+    }
+  };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
+  const getMethodColor = (method: string) => {
+    switch (method.toUpperCase()) {
+      case "GET":
+        return "bg-blue-100 text-blue-800";
+      case "POST":
+        return "bg-green-100 text-green-800";
+      case "PUT":
+        return "bg-yellow-100 text-yellow-800";
+      case "DELETE":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusBadge = (code: number) => {
+    if (!code) return <Badge className="bg-gray-100 text-gray-600">N/A</Badge>;
+
+    if (code >= 200 && code < 300)
+      return <Badge className="bg-green-100 text-green-800">{code}</Badge>;
+
+    if (code >= 400 && code < 500)
+      return <Badge className="bg-yellow-100 text-yellow-800">{code}</Badge>;
+
+    if (code >= 500)
+      return <Badge className="bg-red-100 text-red-800">{code}</Badge>;
+
+    return <Badge>{code}</Badge>;
   };
 
   const apiColumns = [
@@ -199,13 +247,13 @@ export default function ApiLogPage() {
       key: "method",
       header: "메서드",
       cell: (log: ApiRequestLog) => (
-        <Badge variant="outline">{log.method}</Badge>
+        <Badge className={getMethodColor(log.method)}>{log.method}</Badge>
       ),
     },
     {
       key: "status",
       header: "상태",
-      cell: (log: ApiRequestLog) => <Badge>{log.responseStatus}</Badge>,
+      cell: (log: ApiRequestLog) => getStatusBadge(log.responseStatus),
     },
     {
       key: "timestamp",
@@ -216,7 +264,7 @@ export default function ApiLogPage() {
       key: "actions",
       header: "",
       cell: (log: ApiRequestLog) => (
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => handleViewLog(log)}>
           상세
         </Button>
       ),
@@ -229,34 +277,68 @@ export default function ApiLogPage() {
         <h1 className="text-2xl font-bold">API 요청 로그</h1>
         <div className="flex flex-col md:flex-row gap-2">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="로그 검색..."
-              className="pl-8 w-full md:w-[250px]"
-              value={apiSearchParams.keyword}
-              onChange={(e) =>
-                handleApiSearchParamChange("keyword", e.target.value)
-              }
-            />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setApiSearchParams((prev) => ({
+                  ...prev,
+                  keyword: localKeyword,
+                }));
+                setCurrentPage(1);
+              }}
+            >
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="로그 검색..."
+                className="pl-8 w-full"
+                value={localKeyword}
+                onChange={(e) => setLocalKeyword(e.target.value)}
+              />
+            </form>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Select
-              value={apiSearchParams.dateRange}
-              onValueChange={(val) =>
-                handleApiSearchParamChange("dateRange", val)
-              }
-            >
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="기간" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 기간</SelectItem>
-                <SelectItem value="hour">최근 1시간</SelectItem>
-                <SelectItem value="today">오늘</SelectItem>
-                <SelectItem value="week">최근 7일</SelectItem>
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant="outline"
+                  className={cn(
+                    "w-[250px] justify-start text-left font-normal",
+                    !dateRange.from ? "text-muted-foreground" : ""
+                  )}
+                >
+                  {dateRange?.from && dateRange?.to
+                    ? `${format(dateRange.from, "yyyy-MM-dd")} ~ ${format(
+                        dateRange.to,
+                        "yyyy-MM-dd"
+                      )}`
+                    : "기간 선택"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CustomCalendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={(range: DateRange | undefined) => {
+                    const safeRange: DateRange = range ?? {};
+                    setDateRange(safeRange);
+                    if (safeRange.from && safeRange.to) {
+                      setApiSearchParams((prev) => ({
+                        ...prev,
+                        dateRange: "custom",
+                      }));
+                    }
+                  }}
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return date > today;
+                  }}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
 
             <Select
               value={apiSearchParams.method}
@@ -287,36 +369,66 @@ export default function ApiLogPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">모든 상태</SelectItem>
-                <SelectItem value="2xx">2xx (성공)</SelectItem>
-                <SelectItem value="4xx">4xx (클라이언트 오류)</SelectItem>
-                <SelectItem value="5xx">5xx (서버 오류)</SelectItem>
+                <SelectItem value="200">200 (성공)</SelectItem>
+                <SelectItem value="400">400 (클라이언트 오류)</SelectItem>
+                <SelectItem value="500">500 (서버 오류)</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" className="gap-1" onClick={fetchLogs}>
+          <Button
+            variant="outline"
+            className="gap-1"
+            onClick={handleResetFilters}
+          >
             <RefreshCcw className="h-4 w-4" /> 새로고침
           </Button>
         </div>
       </div>
 
-      <Card className="p-4 overflow-x-auto">
+      <div className="flex justify-between items-center text-sm text-muted-foreground px-1 mb-2">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-2 bg-blue-500 rounded-sm" />
+            <span className="text-sm text-black">평균 응답 시간 (ms)</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-2 border border-yellow-400 bg-yellow-100 rounded-sm" />
+            <span className="text-sm text-yellow-700">요청 수</span>
+          </div>
+        </div>
+      </div>
+
+      <Card className="p-4 overflow-x-auto max-h-[500px]">
         {chartData ? (
-          <ApiLogChart data={chartData} /> // 차트 데이터를 ApiLogChart에 전달
+          <ApiLogChart data={chartData} />
         ) : (
-          <p>차트 데이터를 불러오는 중입니다...</p> // 차트 데이터가 없으면 로딩 메시지
+          <p>차트 데이터를 불러오는 중입니다...</p>
         )}
       </Card>
 
       <Card className="overflow-hidden">
         <ResponsiveTable
-          data={filteredApiLogs}
+          data={apiLogs}
           columns={apiColumns}
           emptyMessage="API 요청 로그가 없습니다."
         />
+        <ApiLogDetail
+          open={isDetailOpen}
+          log={selectedApiLog}
+          onClose={() => {
+            setIsDetailOpen(false);
+            setSelectedApiLog(null);
+          }}
+          formatDate={(str) => format(new Date(str), "yyyy-MM-dd HH:mm:ss")}
+          getStatusBadge={getStatusBadge}
+        />
+
         <Pagination
-          totalPages={Math.ceil((filteredApiLogs?.length ?? 0) / rowsPerPage)}
           currentPage={currentPage}
-          onPageChange={setCurrentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => {
+            setCurrentPage(page);
+          }}
         />
       </Card>
     </div>

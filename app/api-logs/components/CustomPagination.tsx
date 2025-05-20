@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 
 interface PaginationProps {
-  totalPages: number;
   currentPage: number;
+  totalPages: number;
   onPageChange: (page: number) => void;
 }
 
@@ -27,6 +27,7 @@ export default function Pagination({
   for (let i = startPage; i <= endPage; i++) {
     pageNumbers.push(i);
   }
+
   return (
     <div className="flex justify-center items-center gap-2 mt-6">
       <button
