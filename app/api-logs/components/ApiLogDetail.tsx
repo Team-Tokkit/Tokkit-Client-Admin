@@ -76,8 +76,11 @@ export default function ApiLogDetailDialog({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <div className="font-semibold">응답 시간</div>
-            <div className="col-span-3">{log.responseTime}ms</div>
+            <div className="col-span-3">
+              {log.responseTimeMs != null ? `${log.responseTimeMs}ms` : "N/A"}
+            </div>
           </div>
+
           <div className="grid grid-cols-4 items-center gap-4">
             <div className="font-semibold">IP 주소</div>
             <div className="col-span-3">{log.ipAddress}</div>
@@ -87,7 +90,7 @@ export default function ApiLogDetailDialog({
             <div className="col-span-3">{log.userId}</div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <div className="font-semibold">추적 ID</div>
+            <div className="font-semibold">Trace ID</div>
             <div className="col-span-3 font-mono text-sm">{log.traceId}</div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
