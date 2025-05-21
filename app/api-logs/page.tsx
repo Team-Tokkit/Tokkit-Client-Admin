@@ -6,8 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import type { DateRange } from "react-day-picker";
-import CustomCalendar from "@/app/api-logs/components/CustomCalendar";
+import DateRangePicker from "@/components/common/DateRangePicker";
+import "react-calendar/dist/Calendar.css";
 import {
   Popover,
   PopoverTrigger,
@@ -26,18 +26,19 @@ import { ApiLogChart } from "@/app/api-logs/components/ApiLogChart";
 import { fetchApiLogs } from "@/lib/api/api-logs";
 import { fetchApiLogDetail } from "@/lib/api/api-logs";
 import { fetchChartData } from "@/lib/api/api-logs";
-import { ResponsiveTable } from "@/components/responsive-table";
 import ApiLogDetail from "@/app/api-logs/components/ApiLogDetail";
-import Pagination from "@/app/api-logs/components/CustomPagination";
+import List from "@/components/common/List";
 
 export interface ApiRequestLog {
   id: number;
   endpoint: string;
   method: string;
   responseStatus: number;
-  responseTime: number;
+  responseTime?: number;
+  responseTimeMs?: number;
   ipAddress: string;
-  userId: number;
+  userId?: number;
+  merchantId?: number;
   traceId: string;
   timestamp: string;
   queryParams?: string;
@@ -61,18 +62,21 @@ export default function ApiLogPage() {
     null
   );
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange>({});
+  const [dateRange, setDateRange] = useState<[Date, Date] | null>(null);
   const [localKeyword, setLocalKeyword] = useState(apiSearchParams.keyword);
 
   const formatDate = (date?: Date): string =>
     date ? format(date, "yyyy-MM-dd HH:mm:ss") : "";
 
-  const startDate = dateRange.from
-    ? format(dateRange.from, "yyyy-MM-dd")
-    : "2000-01-01";
-  const endDate = dateRange.to
-    ? format(dateRange.to, "yyyy-MM-dd")
-    : format(new Date(), "yyyy-MM-dd");
+  const startDate =
+    Array.isArray(dateRange) && dateRange[0]
+      ? format(dateRange[0], "yyyy-MM-dd")
+      : "2000-01-01";
+
+  const endDate =
+    Array.isArray(dateRange) && dateRange[1]
+      ? format(dateRange[1], "yyyy-MM-dd")
+      : format(new Date(), "yyyy-MM-dd");
 
   useEffect(() => {
     fetchLogs();
@@ -86,13 +90,9 @@ export default function ApiLogPage() {
       status: "all",
       dateRange: "all",
     });
-    setDateRange({});
+    setDateRange(null);
+    setLocalKeyword("");
     setCurrentPage(1);
-  };
-
-  const handleSearch = () => {
-    fetchLogs();
-    fetchChartDataFromAPI();
   };
 
   const fetchLogs = async () => {
@@ -185,15 +185,16 @@ export default function ApiLogPage() {
   const handleApiSearchParamChange = (name: string, value: string) => {
     setApiSearchParams((prev) => {
       const updated = { ...prev, [name]: value };
-      console.log(updated.status);
       return updated;
     });
 
     setCurrentPage(1);
   };
+
   const handleViewLog = async (log: ApiRequestLog) => {
     try {
       const response = await fetchApiLogDetail(log.id);
+
       const fixed = {
         ...response.result,
         responseStatus: response.result.status,
@@ -203,6 +204,30 @@ export default function ApiLogPage() {
     } catch (error) {
       console.error("상세 로그 불러오기 실패:", error);
     }
+  };
+
+  const handleQuickRange = (type: string) => {
+    const now = new Date();
+    let from: Date;
+    let to: Date = now;
+
+    switch (type) {
+      case "1h":
+        from = new Date(now.getTime() - 60 * 60 * 1000);
+        break;
+      case "today":
+        from = new Date(now.setHours(0, 0, 0, 0));
+        to = new Date();
+        break;
+      case "7d":
+        from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return;
+    }
+
+    setDateRange([from, to]);
+    setApiSearchParams((prev) => ({ ...prev, dateRange: "custom" }));
   };
 
   const getMethodColor = (method: string) => {
@@ -258,7 +283,7 @@ export default function ApiLogPage() {
     {
       key: "timestamp",
       header: "시간",
-      cell: (log: ApiRequestLog) => formatDate(log.timestamp),
+      cell: (log: ApiRequestLog) => formatDate(new Date(log.timestamp)),
     },
     {
       key: "actions",
@@ -304,39 +329,58 @@ export default function ApiLogPage() {
                   id="date"
                   variant="outline"
                   className={cn(
-                    "w-[250px] justify-start text-left font-normal",
-                    !dateRange.from ? "text-muted-foreground" : ""
+                    "w-[210px] justify-start text-left font-normal",
+                    !Array.isArray(dateRange) || !dateRange[0]
+                      ? "text-muted-foreground"
+                      : ""
                   )}
                 >
-                  {dateRange?.from && dateRange?.to
-                    ? `${format(dateRange.from, "yyyy-MM-dd")} ~ ${format(
-                        dateRange.to,
+                  {Array.isArray(dateRange) && dateRange[0] && dateRange[1]
+                    ? `${format(dateRange[0], "yyyy-MM-dd")} ~ ${format(
+                        dateRange[1],
                         "yyyy-MM-dd"
                       )}`
                     : "기간 선택"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CustomCalendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={(range: DateRange | undefined) => {
-                    const safeRange: DateRange = range ?? {};
-                    setDateRange(safeRange);
-                    if (safeRange.from && safeRange.to) {
+
+              <PopoverContent className="w-auto p-4 space-y-3" align="start">
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={(value) => {
+                    if (Array.isArray(value)) {
+                      setDateRange(value as [Date, Date]);
                       setApiSearchParams((prev) => ({
                         ...prev,
                         dateRange: "custom",
                       }));
                     }
                   }}
-                  disabled={(date) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return date > today;
-                  }}
-                  numberOfMonths={2}
                 />
+
+                <div className="flex justify-between gap-2 pt-2 border-t border-gray-200">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleQuickRange("1h")}
+                  >
+                    최근 1시간
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleQuickRange("today")}
+                  >
+                    오늘
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleQuickRange("7d")}
+                  >
+                    최근 7일
+                  </Button>
+                </div>
               </PopoverContent>
             </Popover>
 
@@ -406,31 +450,24 @@ export default function ApiLogPage() {
         )}
       </Card>
 
-      <Card className="overflow-hidden">
-        <ResponsiveTable
-          data={apiLogs}
-          columns={apiColumns}
-          emptyMessage="API 요청 로그가 없습니다."
-        />
-        <ApiLogDetail
-          open={isDetailOpen}
-          log={selectedApiLog}
-          onClose={() => {
-            setIsDetailOpen(false);
-            setSelectedApiLog(null);
-          }}
-          formatDate={(str) => format(new Date(str), "yyyy-MM-dd HH:mm:ss")}
-          getStatusBadge={getStatusBadge}
-        />
+      <List
+        data={apiLogs}
+        columns={apiColumns}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={(page) => {
-            setCurrentPage(page);
-          }}
-        />
-      </Card>
+      <ApiLogDetail
+        open={isDetailOpen}
+        log={selectedApiLog}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setSelectedApiLog(null);
+        }}
+        formatDate={(str) => format(new Date(str), "yyyy-MM-dd HH:mm:ss")}
+        getStatusBadge={getStatusBadge}
+      />
     </div>
   );
 }
