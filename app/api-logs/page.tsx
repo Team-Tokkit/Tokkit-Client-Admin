@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import DateRangePicker from "@/app/api-logs/components/DateRangePicker";
+import DateRangePicker from "@/components/common/DateRangePicker";
 import "react-calendar/dist/Calendar.css";
 import {
   Popover,
@@ -26,9 +26,8 @@ import { ApiLogChart } from "@/app/api-logs/components/ApiLogChart";
 import { fetchApiLogs } from "@/lib/api/api-logs";
 import { fetchApiLogDetail } from "@/lib/api/api-logs";
 import { fetchChartData } from "@/lib/api/api-logs";
-import { ResponsiveTable } from "@/components/responsive-table";
 import ApiLogDetail from "@/app/api-logs/components/ApiLogDetail";
-import Pagination from "@/app/api-logs/components/CustomPagination";
+import List from "@/components/common/List";
 
 export interface ApiRequestLog {
   id: number;
@@ -38,7 +37,8 @@ export interface ApiRequestLog {
   responseTime?: number;
   responseTimeMs?: number;
   ipAddress: string;
-  userId: number;
+  userId?: number;
+  merchantId?: number;
   traceId: string;
   timestamp: string;
   queryParams?: string;
@@ -91,6 +91,7 @@ export default function ApiLogPage() {
       dateRange: "all",
     });
     setDateRange(null);
+    setLocalKeyword("");
     setCurrentPage(1);
   };
 
@@ -193,6 +194,7 @@ export default function ApiLogPage() {
   const handleViewLog = async (log: ApiRequestLog) => {
     try {
       const response = await fetchApiLogDetail(log.id);
+
       const fixed = {
         ...response.result,
         responseStatus: response.result.status,
@@ -202,6 +204,30 @@ export default function ApiLogPage() {
     } catch (error) {
       console.error("상세 로그 불러오기 실패:", error);
     }
+  };
+
+  const handleQuickRange = (type: string) => {
+    const now = new Date();
+    let from: Date;
+    let to: Date = now;
+
+    switch (type) {
+      case "1h":
+        from = new Date(now.getTime() - 60 * 60 * 1000);
+        break;
+      case "today":
+        from = new Date(now.setHours(0, 0, 0, 0));
+        to = new Date();
+        break;
+      case "7d":
+        from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return;
+    }
+
+    setDateRange([from, to]);
+    setApiSearchParams((prev) => ({ ...prev, dateRange: "custom" }));
   };
 
   const getMethodColor = (method: string) => {
@@ -257,7 +283,7 @@ export default function ApiLogPage() {
     {
       key: "timestamp",
       header: "시간",
-      cell: (log: ApiRequestLog) => formatDate(log.timestamp),
+      cell: (log: ApiRequestLog) => formatDate(new Date(log.timestamp)),
     },
     {
       key: "actions",
@@ -303,7 +329,7 @@ export default function ApiLogPage() {
                   id="date"
                   variant="outline"
                   className={cn(
-                    "w-[130px] justify-start text-left font-normal",
+                    "w-[210px] justify-start text-left font-normal",
                     !Array.isArray(dateRange) || !dateRange[0]
                       ? "text-muted-foreground"
                       : ""
@@ -317,7 +343,8 @@ export default function ApiLogPage() {
                     : "기간 선택"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+
+              <PopoverContent className="w-auto p-4 space-y-3" align="start">
                 <DateRangePicker
                   value={dateRange}
                   onChange={(value) => {
@@ -330,6 +357,30 @@ export default function ApiLogPage() {
                     }
                   }}
                 />
+
+                <div className="flex justify-between gap-2 pt-2 border-t border-gray-200">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleQuickRange("1h")}
+                  >
+                    최근 1시간
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleQuickRange("today")}
+                  >
+                    오늘
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleQuickRange("7d")}
+                  >
+                    최근 7일
+                  </Button>
+                </div>
               </PopoverContent>
             </Popover>
 
@@ -399,31 +450,24 @@ export default function ApiLogPage() {
         )}
       </Card>
 
-      <Card className="overflow-hidden">
-        <ResponsiveTable
-          data={apiLogs}
-          columns={apiColumns}
-          emptyMessage="API 요청 로그가 없습니다."
-        />
-        <ApiLogDetail
-          open={isDetailOpen}
-          log={selectedApiLog}
-          onClose={() => {
-            setIsDetailOpen(false);
-            setSelectedApiLog(null);
-          }}
-          formatDate={(str) => format(new Date(str), "yyyy-MM-dd HH:mm:ss")}
-          getStatusBadge={getStatusBadge}
-        />
+      <List
+        data={apiLogs}
+        columns={apiColumns}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={(page) => {
-            setCurrentPage(page);
-          }}
-        />
-      </Card>
+      <ApiLogDetail
+        open={isDetailOpen}
+        log={selectedApiLog}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setSelectedApiLog(null);
+        }}
+        formatDate={(str) => format(new Date(str), "yyyy-MM-dd HH:mm:ss")}
+        getStatusBadge={getStatusBadge}
+      />
     </div>
   );
 }

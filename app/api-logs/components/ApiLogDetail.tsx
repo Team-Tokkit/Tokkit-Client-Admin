@@ -1,4 +1,6 @@
 "use client";
+
+import { JSX } from "react/jsx-runtime";
 import {
   Dialog,
   DialogContent,
@@ -87,7 +89,17 @@ export default function ApiLogDetailDialog({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <div className="font-semibold">사용자 ID</div>
-            <div className="col-span-3">{log.userId}</div>
+            <div className="col-span-3">
+              {log.endpoint?.includes("merchants") ? "-" : log.userId ?? "-"}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <div className="font-semibold">가맹점주 ID</div>
+            <div className="col-span-3">
+              {log.endpoint?.includes("merchants")
+                ? log.merchantId ?? "-"
+                : "-"}
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <div className="font-semibold">Trace ID</div>
