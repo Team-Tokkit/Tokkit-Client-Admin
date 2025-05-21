@@ -26,36 +26,61 @@ interface ApiChartRawItem {
   avgResponseTime: number;
 }
 
-// 백엔드에서 전달하는 데이터 구조에 맞게 수정된 인터페이스
 export interface ApiRequestLogChartData {
-  labels: string[]; // 엔드포인트 레이블 (예: POST /api/users/emailCheck)
+  labels: string[];
   datasets: [
     {
-      label: string; // "평균 응답 시간 (ms)"
-      data: number[]; // 각 레이블에 해당하는 avgResponseTime 값들
-      backgroundColor: string; // 색상
-      yAxisID: string; // y축 ID
-      barThickness: number; // 막대 두께
-      maxBarThickness: number; // 최대 막대 두께
+      label: string;
+      data: number[];
+      backgroundColor: string | string[];
+      yAxisID: string;
+      barThickness: number;
+      maxBarThickness: number;
     },
     {
-      label: string; // "요청 수"
-      data: number[]; // 각 레이블에 해당하는 count 값들
-      borderColor: string; // 라인 색상
-      backgroundColor: string; // 배경 색상
-      borderWidth: number; // 테두리 두께
-      fill: boolean; // 선 밑을 채울지 여부
-      yAxisID: string; // y축 ID
-      tension: number; // 선의 곡선 정도
-      pointRadius: number; // 포인트의 반지름
+      label: string;
+      data: number[];
+      borderColor: string;
+      backgroundColor: string;
+      borderWidth: number;
+      fill: boolean;
+      yAxisID: string;
+      tension: number;
+      pointRadius: number;
     }
   ];
 }
 
+// ✅ 라벨 축약 함수
+function shortenLabel(label: string): string {
+  const parts = label.split("/");
+  const domainIndex = parts.findIndex(
+    (p) => p === "users" || p === "merchants"
+  );
+  if (domainIndex === -1) return label;
+  return parts.slice(domainIndex, domainIndex + 3).join("/");
+}
+
+// ✅ 색상 구분 함수
+function getBarColor(label: string): string {
+  if (label.includes("/users/")) return "#4285F4"; // 파란색
+  if (label.includes("/merchants/")) return "#34A853"; // 초록색
+  return "#999999"; // 기타 (회색)
+}
+
 export function ApiLogChart({ data }: { data: ApiRequestLogChartData }) {
+  const shortenedLabels = data.labels.map(shortenLabel);
+  const barColors = data.labels.map(getBarColor);
+
   const chartData = {
-    labels: data.labels,
-    datasets: data.datasets,
+    labels: shortenedLabels,
+    datasets: [
+      {
+        ...data.datasets[0],
+        backgroundColor: barColors,
+      },
+      data.datasets[1],
+    ],
   };
 
   const options = {
@@ -68,6 +93,14 @@ export function ApiLogChart({ data }: { data: ApiRequestLogChartData }) {
     plugins: {
       legend: {
         display: false,
+      },
+      tooltip: {
+        callbacks: {
+          title: (tooltipItems: any[]) => {
+            const index = tooltipItems[0].dataIndex;
+            return data.labels[index]; // ✅ 전체 라벨을 툴팁에 사용
+          },
+        },
       },
     },
     scales: {
@@ -100,6 +133,7 @@ export function ApiLogChart({ data }: { data: ApiRequestLogChartData }) {
   );
 }
 
+// (선택적으로 사용 가능)
 function groupByEndpoint(logs: ApiChartRawItem[]) {
   const result: Record<string, { total: number; count: number; avg: number }> =
     {};

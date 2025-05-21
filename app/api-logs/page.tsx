@@ -23,9 +23,9 @@ import {
 } from "@/components/ui/select";
 import { Search, RefreshCcw } from "lucide-react";
 import { ApiLogChart } from "@/app/api-logs/components/ApiLogChart";
-import { fetchApiLogs } from "@/lib/api/api-logs";
-import { fetchApiLogDetail } from "@/lib/api/api-logs";
-import { fetchChartData } from "@/lib/api/api-logs";
+import { fetchApiLogs } from "@/app/api-logs/api/api-logs";
+import { fetchApiLogDetail } from "@/app/api-logs/api/api-logs";
+import { fetchChartData } from "@/app/api-logs/api/api-logs";
 import ApiLogDetail from "@/app/api-logs/components/ApiLogDetail";
 import List from "@/components/common/List";
 
