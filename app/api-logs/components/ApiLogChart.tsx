@@ -19,7 +19,6 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-import type { ApiRequestLog } from "@/app/api-logs/page";
 
 interface ApiChartRawItem {
   label: string;
@@ -51,7 +50,6 @@ export interface ApiRequestLogChartData {
   ];
 }
 
-// ✅ 라벨 축약 함수
 function shortenLabel(label: string): string {
   const parts = label.split("/");
   const domainIndex = parts.findIndex(
@@ -61,11 +59,10 @@ function shortenLabel(label: string): string {
   return parts.slice(domainIndex, domainIndex + 3).join("/");
 }
 
-// ✅ 색상 구분 함수
 function getBarColor(label: string): string {
-  if (label.includes("/users/")) return "#4285F4"; // 파란색
-  if (label.includes("/merchants/")) return "#34A853"; // 초록색
-  return "#999999"; // 기타 (회색)
+  if (label.includes("/users/")) return "#4285F4";
+  if (label.includes("/merchants/")) return "#34A853";
+  return "#999999";
 }
 
 export function ApiLogChart({ data }: { data: ApiRequestLogChartData }) {
@@ -98,7 +95,7 @@ export function ApiLogChart({ data }: { data: ApiRequestLogChartData }) {
         callbacks: {
           title: (tooltipItems: any[]) => {
             const index = tooltipItems[0].dataIndex;
-            return data.labels[index]; // ✅ 전체 라벨을 툴팁에 사용
+            return data.labels[index];
           },
         },
       },
@@ -133,7 +130,6 @@ export function ApiLogChart({ data }: { data: ApiRequestLogChartData }) {
   );
 }
 
-// (선택적으로 사용 가능)
 function groupByEndpoint(logs: ApiChartRawItem[]) {
   const result: Record<string, { total: number; count: number; avg: number }> =
     {};

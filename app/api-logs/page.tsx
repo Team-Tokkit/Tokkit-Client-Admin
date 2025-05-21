@@ -433,6 +433,8 @@ export default function ApiLogPage() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <div className="w-4 h-2 bg-blue-500 rounded-sm" />
+            <div className="w-4 h-2 bg-green-500 rounded-sm" />
+            <div className="w-4 h-2 bg-gray-400 rounded-sm" />
             <span className="text-sm text-black">평균 응답 시간 (ms)</span>
           </div>
           <div className="flex items-center gap-1">
