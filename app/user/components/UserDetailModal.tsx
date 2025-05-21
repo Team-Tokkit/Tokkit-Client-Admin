@@ -10,31 +10,26 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  status: "활성" | "비활성";
+  createdAt: string;
+}
+
 interface Props {
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-    status: "활성" | "비활성";
-    joinedAt: string;
-  };
+  user: User;
   onClose: () => void;
-  onSave: (user: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-    status: "활성" | "비활성";
-    joinedAt: string;
-  }) => void;
+  onSave: (user: User) => void;
 }
 
 export default function UserDetailModal({ user, onClose, onSave }: Props) {
   const [formData, setFormData] = useState({
     name: user.name,
     email: user.email,
-    phone: user.phone,
+    phoneNumber: user.phoneNumber,
   });
 
   return (
@@ -70,9 +65,9 @@ export default function UserDetailModal({ user, onClose, onSave }: Props) {
             <div className="font-semibold mb-3">전화번호</div>
             <Input
               placeholder="전화번호"
-              value={formData.phone}
+              value={formData.phoneNumber}
               onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
+                setFormData({ ...formData, phoneNumber: e.target.value })
               }
             />
           </div>
