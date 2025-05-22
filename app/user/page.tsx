@@ -1,69 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, RefreshCcw } from "lucide-react";
 import List from "@/components/common/List";
 import { ManageBox } from "./components/ManageBox";
 import UserDetailModal from "./components/UserDetailModal";
 import DeleteModal from "./components/DeleteModal";
 import PinChangeModal from "./components/PinChangeModal";
+import { fetchUsers, updateUserStatus, updateUser } from "@/app/user/api/user";
 
 interface User {
   id: number;
   name: string;
   email: string;
-  phone: string;
+  phoneNumber: string;
   status: "활성" | "비활성";
-  joinedAt: string;
+  createdAt: string;
 }
 
-const mockUsers: User[] = [
-  {
-    id: 1,
-    name: "김민수",
-    email: "minsu.kim@example.com",
-    phone: "010-1234-5678",
-    status: "활성",
-    joinedAt: "2023-01-15",
-  },
-  {
-    id: 2,
-    name: "이지은",
-    email: "jieun.lee@example.com",
-    phone: "010-2345-6789",
-    status: "활성",
-    joinedAt: "2023-02-20",
-  },
-  {
-    id: 3,
-    name: "박준호",
-    email: "junho.park@example.com",
-    phone: "010-3456-7890",
-    status: "비활성",
-    joinedAt: "2023-03-10",
-  },
-  {
-    id: 4,
-    name: "최유진",
-    email: "yujin.choi@example.com",
-    phone: "010-4567-8901",
-    status: "활성",
-    joinedAt: "2023-04-05",
-  },
-  {
-    id: 5,
-    name: "정현우",
-    email: "hyunwoo.jung@example.com",
-    phone: "010-5678-9012",
-    status: "비활성",
-    joinedAt: "2023-05-12",
-  },
-];
-
 export default function UserPage() {
-  const [userList, setUserList] = useState<User[]>(mockUsers);
+  const [userList, setUserList] = useState<User[]>([]);
   const [keyword, setKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -73,27 +32,41 @@ export default function UserPage() {
   const [deleteModalUser, setDeleteModalUser] = useState<User | null>(null);
   const [pinModalUser, setPinModalUser] = useState<User | null>(null);
 
-  const fetchUserData = () => {
-    const filtered = mockUsers.filter((u) => u.name.includes(keyword.trim()));
-    setUserList(filtered);
-    setTotalPages(1);
+  const fetchUserData = async () => {
+    try {
+      const res = await fetchUsers({ page: currentPage - 1, keyword });
+
+      const pageData = res.result;
+      const mapped = pageData.content.map((user: any) => ({
+        ...user,
+        status: user.isDormant ? "비활성" : "활성",
+      }));
+
+      setUserList(mapped);
+      setTotalPages(pageData.totalPages);
+    } catch (err) {
+      console.error("사용자 목록 불러오기 실패", err);
+    }
   };
 
   useEffect(() => {
     fetchUserData();
   }, [keyword, currentPage]);
 
-  const handleToggleStatus = (userId: number) => {
-    setUserList((prev) =>
-      prev.map((user) =>
-        user.id === userId
-          ? {
-              ...user,
-              status: user.status === "활성" ? "비활성" : "활성",
-            }
-          : user
-      )
-    );
+  const handleResetFilters = () => {
+    setLocalKeyword("");
+    setKeyword("");
+    setCurrentPage(1);
+  };
+
+  const handleToggleStatus = async (userId: number, currentStatus: string) => {
+    const newIsDormant = currentStatus === "활성";
+    try {
+      await updateUserStatus(userId, newIsDormant);
+      fetchUserData();
+    } catch (err) {
+      console.error("상태 변경 실패", err);
+    }
   };
 
   const handleSaveUser = (updated: User) => {
@@ -125,7 +98,7 @@ export default function UserPage() {
     {
       key: "phone",
       header: "전화번호",
-      cell: (user: User) => <span>{user.phone}</span>,
+      cell: (user: User) => <span>{user.phoneNumber}</span>,
     },
     {
       key: "status",
@@ -139,7 +112,7 @@ export default function UserPage() {
           }
           onClick={() => {
             if (confirm("상태를 변경하시겠습니까?")) {
-              handleToggleStatus(user.id);
+              handleToggleStatus(user.id, user.status);
             }
           }}
         >
@@ -150,8 +123,10 @@ export default function UserPage() {
     {
       key: "joinedAt",
       header: "가입일",
-      cell: (user: User) => new Date(user.joinedAt).toLocaleDateString("ko-KR"),
+      cell: (user: User) =>
+        new Date(user.createdAt).toLocaleDateString("ko-KR"),
     },
+
     {
       key: "actions",
       header: "관리",
@@ -187,6 +162,13 @@ export default function UserPage() {
               />
             </form>
           </div>
+          <Button
+            variant="outline"
+            className="gap-1"
+            onClick={handleResetFilters}
+          >
+            <RefreshCcw className="h-4 w-4" /> 새로고침
+          </Button>
         </div>
       </div>
 

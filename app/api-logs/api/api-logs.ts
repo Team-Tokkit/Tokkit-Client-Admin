@@ -1,4 +1,4 @@
-import { getApiUrl } from "../getApiUrl";
+import { getApiUrl } from "@/lib/getApiUrl";
 import axios from "axios";
 
 const API_URL = getApiUrl();
