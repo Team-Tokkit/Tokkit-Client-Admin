@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import VoucherIssueForm from "@/components/voucher-issue-form";
-import { VoucherContent } from "@/components/voucher-content";
 import { NoticeContent } from "@/components/notice-content";
 // import { AuthContent } from "@/components/auth-content";
 import { PaymentContent } from "@/components/payment-content";
@@ -28,19 +26,6 @@ export default function Home() {
   useEffect(() => {
     router.replace("/login");
   }, [router]);
-
-  // 바우처 발행 폼 토글
-  const toggleVoucherIssue = (voucher = null) => {
-    setVoucherToEdit(voucher);
-    setShowVoucherIssue(!showVoucherIssue);
-  };
-
-  // 바우처 발행 완료 핸들러
-  const handleVoucherIssueComplete = () => {
-    setShowVoucherIssue(false);
-    setVoucherToEdit(null);
-    // 여기에 바우처 목록 새로고침 로직 추가
-  };
 
   // 탭 변경 핸들러
   const handleTabChange = (tab) => {
@@ -86,21 +71,6 @@ export default function Home() {
           <div className="p-4 md:p-6">
             {/* 대시보드 */}
             {activeTab === "dashboard" && <DashboardContent />}
-
-            {/* 바우처 관리 */}
-            {activeTab === "voucher" && (
-              <>
-                {showVoucherIssue ? (
-                  <VoucherIssueForm
-                    voucher={voucherToEdit}
-                    onCancel={toggleVoucherIssue}
-                    onComplete={handleVoucherIssueComplete}
-                  />
-                ) : (
-                  <VoucherContent onIssueClick={toggleVoucherIssue} />
-                )}
-              </>
-            )}
 
             {/* 사용자 관리 */}
             {activeTab === "user" && <UserContent />}
