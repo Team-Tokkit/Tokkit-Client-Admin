@@ -21,7 +21,7 @@ const menu = [
   { label: "사용자 관리", icon: Users, path: "/user" },
   { label: "공지사항 관리", icon: FileText, path: "/notice" },
   { label: "인증 관리", icon: ShieldCheck, path: "/auth" },
-  { label: "결제 관리", icon: CreditCard, path: "/payment" },
+  { label: "결제 관리", icon: CreditCard, path: "/transaction" },
   { label: "판매자 관리", icon: Store, path: "/merchant" },
   { label: "시스템 로그", icon: Terminal, path: "/system-logs" },
   { label: "API 요청 로그", icon: Terminal, path: "/api-logs" },
