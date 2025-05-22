@@ -11,20 +11,21 @@ import {
   Store,
   Terminal,
   LogOut,
+  TriangleAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
 
 const menu = [
   { label: "대시보드", icon: BarChart3, path: "/dashboard" },
-  { label: "바우처 관리", icon: Ticket, path: "/voucher" },
-  { label: "사용자 관리", icon: Users, path: "/user" },
-  { label: "공지사항 관리", icon: FileText, path: "/notice" },
   { label: "인증 관리", icon: ShieldCheck, path: "/auth" },
   { label: "결제 관리", icon: CreditCard, path: "/transaction" },
+  { label: "사용자 관리", icon: Users, path: "/user" },
   { label: "판매자 관리", icon: Store, path: "/merchant" },
-  { label: "시스템 로그", icon: Terminal, path: "/system-logs" },
+  { label: "바우처 관리", icon: Ticket, path: "/voucher" },
+  { label: "공지사항 관리", icon: FileText, path: "/notice" },
   { label: "API 요청 로그", icon: Terminal, path: "/api-logs" },
+  { label: "시스템 에러 로그", icon: TriangleAlert, path: "/error-logs" },
 ];
 
 export default function Sidebar({
