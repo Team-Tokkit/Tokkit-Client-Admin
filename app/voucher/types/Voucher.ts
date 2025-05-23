@@ -32,3 +32,10 @@ export interface GetVouchersResponse {
   content: Voucher[];
   totalPages: number;
 }
+
+export interface UpdateVoucherPayload {
+  description: string;
+  detailDescription: string;
+  price: number;
+  contact: string;
+}

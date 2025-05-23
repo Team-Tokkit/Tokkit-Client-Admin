@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,AlertDialogTitle,} from "@/components/ui/alert-dialog";
 import List from "@/components/common/List";
-import { getVouchers } from "@/app/voucher/lib/api";
+import { getVouchers, updateVoucher } from "@/app/voucher/lib/api";
 import { Voucher } from "@/app/voucher/types/Voucher";
+import UpdateModal from "./UpdateModal";
 
+// 카테고리 라벨 정의
 const categoryLabels = {
   FOOD: "음식점",
   MEDICAL: "의료",
@@ -29,10 +31,13 @@ export default function VoucherList() {
   const [expirationPeriod, setExpirationPeriod] = useState<"asc" | "desc" | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
-  
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
+
+  // 수정/삭제 핸들러
   const handleEdit = (item: Voucher) => {
-    // 편집 로직
+    setSelectedVoucher(item);
+    setEditDialogOpen(true);
   };
 
   const openDeleteDialog = (item: Voucher) => {
@@ -49,14 +54,18 @@ export default function VoucherList() {
     setPage(newPage);
   };
 
+
+  // 디바운싱 처리 (검색 키워드)
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedKeyword(searchKeyword);
     }, 500);
 
-    return () => clearTimeout(handler); 
+    return () => clearTimeout(handler);
   }, [searchKeyword]);
 
+
+  // 전체 바우처 목록 불러오기
   useEffect(() => {
     const fetchData = async () => {
       const res = await getVouchers({
@@ -69,9 +78,49 @@ export default function VoucherList() {
       setData(res.content);
       setTotalPages(res.totalPages);
     };
+
     fetchData();
   }, [page, debouncedKeyword, storeCategory, expirationPeriod]);
 
+
+  // 수정 제출 핸들러
+  const handleEditSubmit = async (form: {
+    description: string;
+    detailDescription: string;
+    price: string;
+    contact: string;
+  }) => {
+    if (!selectedVoucher) return;
+
+    try {
+      await updateVoucher(selectedVoucher.id, {
+        description: form.description,
+        detailDescription: form.detailDescription,
+        price: parseInt(form.price, 10),
+        contact: form.contact,
+      });
+
+      alert("수정이 완료되었습니다!");
+
+      setEditDialogOpen(false);
+      setSelectedVoucher(null);
+
+      const res = await getVouchers({
+        page: page - 1,
+        size: 10,
+        searchKeyword: debouncedKeyword,
+        storeCategory,
+        sortByValidDate: expirationPeriod,
+      });
+      setData(res.content);
+      setTotalPages(res.totalPages);
+    } catch (err) {
+      console.error("수정 중 오류 발생:", err);
+    }
+  };
+
+
+  // 테이블 컬럼 정의
   const columns = [
     { key: "id", header: "ID", cell: (item: Voucher) => item.id },
     {
@@ -117,12 +166,16 @@ export default function VoucherList() {
     },
   ];
 
+
   return (
     <div className="bg-white rounded-lg border shadow-sm">
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">바우처 관리</h2>
+
+          {/* 검색/필터 UI */}
           <div className="flex items-center gap-2">
+            {/* 검색창 */}
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -132,6 +185,8 @@ export default function VoucherList() {
                 onChange={(e) => setSearchKeyword(e.target.value)}
               />
             </div>
+
+            {/* 카테고리 필터 */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 text-sm">
@@ -148,6 +203,8 @@ export default function VoucherList() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* 유효기간 정렬 */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 text-sm">
@@ -169,6 +226,7 @@ export default function VoucherList() {
         </div>
       </div>
 
+      {/* 바우처 리스트 테이블 */}
       <List
         data={data}
         columns={columns}
@@ -177,6 +235,7 @@ export default function VoucherList() {
         onPageChange={handlePageChange}
       />
 
+      {/* 삭제 다이얼로그 */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -196,6 +255,14 @@ export default function VoucherList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 수정 모달 */}
+      <UpdateModal
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        voucher={selectedVoucher}
+        onSubmit={handleEditSubmit}
+      />
     </div>
   );
 }
