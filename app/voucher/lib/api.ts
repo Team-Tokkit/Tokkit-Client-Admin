@@ -44,6 +44,15 @@ export async function getVoucherDetail(voucherId: number): Promise<VoucherDetail
   }
 }
 
+// 바우처 전체 조회
+export async function getStoresByVoucherId(voucherId: number, page: number, size: number) {
+  const API_URL = getApiUrl()
+  const response = await axios.get(`${API_URL}/admin-api/vouchers/details/${voucherId}/stores`, {
+    params: { page, size },
+  })
+  return response.data.result
+}
+
 
 // 바우처 수정
 export async function updateVoucher(voucherId: number, payload: UpdateVoucherPayload): Promise<void> {
@@ -51,6 +60,16 @@ export async function updateVoucher(voucherId: number, payload: UpdateVoucherPay
     await axios.patch(`${API_URL}/admin-api/vouchers/${voucherId}`, payload);
   } catch (error) {
     console.error("바우처 수정 실패:", error);
+    throw error;
+  }
+}
+
+// 바우처 삭제
+export async function deleteVoucher(voucherId: number): Promise<void> {
+  try {
+    await axios.delete(`${API_URL}/admin-api/vouchers/${voucherId}`);
+  } catch (error) {
+    console.error("바우처 삭제 실패:", error);
     throw error;
   }
 }
