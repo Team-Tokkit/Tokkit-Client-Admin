@@ -3,13 +3,15 @@ import { getApiUrl } from "@/lib/getApiUrl";
 
 const API_URL = getApiUrl();
 
-export async function fetchLoginLogs(params: {
+export async function fetchAuthLogs(params: {
   page?: number;
   size?: number;
   keyword?: string;
   event?: string;
   success?: string;
   dateRange?: string;
+  userId?: number;
+  merchantId?: number;
 }) {
   const query = new URLSearchParams();
 
@@ -27,6 +29,13 @@ export async function fetchLoginLogs(params: {
     query.append("success", "false");
   }
 
+  if (params.userId !== undefined) {
+    query.append("userId", params.userId.toString());
+  }
+
+  if (params.merchantId !== undefined) {
+    query.append("merchantId", params.merchantId.toString());
+  }
 
   if (params.dateRange) query.append("dateRange", params.dateRange);
 
@@ -35,35 +44,8 @@ export async function fetchLoginLogs(params: {
   return response.data;
 }
 
-export async function fetchLoginLogDetail(id: number) {
+export async function fetchAuthLogDetail(id: number) {
   const url = `${API_URL}/admin-api/login-logs/${id}`;
-  const response = await axios.get(url);
-  return response.data;
-}
-
-export async function fetchErrorLogs(params: {
-  page?: number;
-  size?: number;
-  keyword?: string;
-  severity?: string;
-  dateRange?: string;
-}) {
-  const query = new URLSearchParams();
-
-  if (params.page !== undefined) query.append("page", params.page.toString());
-  if (params.size !== undefined) query.append("size", params.size.toString());
-  if (params.keyword) query.append("keyword", params.keyword);
-  if (params.severity && params.severity !== "all")
-    query.append("severity", params.severity);
-  if (params.dateRange) query.append("dateRange", params.dateRange);
-
-  const url = `${API_URL}/admin-api/system-error-logs?${query.toString()}`;
-  const response = await axios.get(url);
-  return response.data;
-}
-
-export async function fetchErrorLogDetail(id: number) {
-  const url = `${API_URL}/admin-api/system-error-logs/${id}`;
   const response = await axios.get(url);
   return response.data;
 }
