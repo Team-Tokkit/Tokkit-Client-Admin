@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCcw } from "lucide-react";
 import List from "@/components/common/List";
-import { ManageBox } from "./components/ManageBox";
-import UserDetailModal from "./components/UserDetailModal";
-import DeleteModal from "./components/DeleteModal";
-import PinChangeModal from "./components/PinChangeModal";
-import { fetchUsers, updateUserStatus, updateUser } from "@/app/user/api/user";
+import UserDetailDialog from "./components/UserDetail";
+import {
+  fetchUsers,
+  fetchUserDetail,
+  updateUserStatus,
+  updateUser,
+} from "@/app/user/api/user";
 
 interface User {
   id: number;
@@ -21,22 +23,28 @@ interface User {
   createdAt: string;
 }
 
+interface UserUpdate {
+  id: number;
+  name: string;
+  phoneNumber: string;
+  status: "활성" | "비활성";
+  pin?: string;
+}
+
 export default function UserPage() {
   const [userList, setUserList] = useState<User[]>([]);
   const [keyword, setKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [localKeyword, setLocalKeyword] = useState("");
-
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [deleteModalUser, setDeleteModalUser] = useState<User | null>(null);
-  const [pinModalUser, setPinModalUser] = useState<User | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchUserData = async () => {
     try {
       const res = await fetchUsers({ page: currentPage - 1, keyword });
-
       const pageData = res.result;
+
       const mapped = pageData.content.map((user: any) => ({
         ...user,
         status: user.isDormant ? "비활성" : "활성",
@@ -69,14 +77,32 @@ export default function UserPage() {
     }
   };
 
-  const handleSaveUser = (updated: User) => {
-    setUserList((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
-    setSelectedUser(null);
+  const handleSaveUser = async (updated: UserUpdate) => {
+    try {
+      const phone = updated.phoneNumber || selectedUser?.phoneNumber;
+
+      const response = await updateUser(updated.id, {
+        name: updated.name,
+        phoneNumber: phone,
+        pin: updated.pin,
+      });
+
+      if (response.isSuccess) {
+        await fetchUserData();
+        setSelectedUser(null);
+        setIsDetailOpen(false);
+      } else {
+        console.error("사용자 수정 실패");
+      }
+    } catch (err) {
+      console.error("사용자 수정 중 오류 발생", err);
+    }
   };
 
-  const handleDeleteUser = (userId: number) => {
-    setUserList((prev) => prev.filter((user) => user.id !== userId));
-    setDeleteModalUser(null);
+  const handleViewUser = async (user: UserUpdate) => {
+    const userDetail = await fetchUserDetail(user.id);
+    setSelectedUser(userDetail);
+    setIsDetailOpen(true);
   };
 
   const userColumns = [
@@ -126,19 +152,17 @@ export default function UserPage() {
       cell: (user: User) =>
         new Date(user.createdAt).toLocaleDateString("ko-KR"),
     },
-
     {
       key: "actions",
       header: "관리",
       cell: (user: User) => (
-        <ManageBox
-          onEdit={() => setSelectedUser(user)}
-          onDelete={() => setDeleteModalUser(user)}
-          onChangePin={() => setPinModalUser(user)}
-        />
+        <Button variant="ghost" onClick={() => handleViewUser(user)}>
+          상세
+        </Button>
       ),
     },
   ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -180,29 +204,12 @@ export default function UserPage() {
         onPageChange={setCurrentPage}
       />
 
-      {selectedUser && (
-        <UserDetailModal
+      {isDetailOpen && selectedUser && (
+        <UserDetailDialog
+          open={isDetailOpen}
           user={selectedUser}
-          onClose={() => setSelectedUser(null)}
+          onClose={() => setIsDetailOpen(false)}
           onSave={handleSaveUser}
-        />
-      )}
-
-      {deleteModalUser && (
-        <DeleteModal
-          user={deleteModalUser}
-          onClose={() => setDeleteModalUser(null)}
-          onConfirm={() => handleDeleteUser(deleteModalUser.id)}
-        />
-      )}
-
-      {pinModalUser && (
-        <PinChangeModal
-          user={pinModalUser}
-          onClose={() => setPinModalUser(null)}
-          onChangePin={(pin) => {
-            setPinModalUser(null);
-          }}
         />
       )}
     </div>

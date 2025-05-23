@@ -13,27 +13,55 @@ import { Input } from "@/components/ui/input";
 interface User {
   id: number;
   name: string;
-  email: string;
   phoneNumber: string;
   status: "활성" | "비활성";
   createdAt: string;
+  pin?: string;
 }
 
 interface Props {
+  open: boolean;
   user: User;
   onClose: () => void;
   onSave: (user: User) => void;
 }
 
-export default function UserDetailModal({ user, onClose, onSave }: Props) {
+export default function UserDetailDialog({ user, onClose, onSave }: Props) {
   const [formData, setFormData] = useState({
-    name: user.name,
-    email: user.email,
-    phoneNumber: user.phoneNumber,
+    name: user.name || "",
+    phoneNumber: user.phoneNumber || "",
+    pin: "",
   });
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+
+    const formattedPhone = inputValue
+      .replace(/[^\d]/g, "")
+      .replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+
+    setFormData({ ...formData, phoneNumber: formattedPhone });
+  };
+
+  const handleSave = () => {
+    if (formData.pin.length > 0 && formData.pin.length !== 6) {
+      alert("비밀번호는 숫자 6자리여야 합니다.");
+      return;
+    }
+
+    const updatedUser = {
+      ...user,
+      name: formData.name,
+      phoneNumber: formData.phoneNumber || user.phoneNumber,
+      pin: formData.pin,
+    };
+
+    onSave(updatedUser);
+    onClose();
+  };
+
   return (
-    <Dialog open onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>사용자 수정</DialogTitle>
@@ -51,24 +79,26 @@ export default function UserDetailModal({ user, onClose, onSave }: Props) {
               }
             />
           </div>
-          <div className="items-center gap-4">
-            <div className="font-semibold mb-3">이메일</div>
-            <Input
-              placeholder="이메일"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-            />
-          </div>
+
           <div className="items-center gap-4">
             <div className="font-semibold mb-3">전화번호</div>
             <Input
               placeholder="전화번호"
               value={formData.phoneNumber}
+              onChange={handlePhoneChange}
+            />
+          </div>
+
+          <div className="items-center gap-4">
+            <div className="font-semibold mb-3">간편 비밀번호 (숫자 6자리)</div>
+            <Input
+              type="password"
+              placeholder="숫자 6자리 입력"
+              value={formData.pin}
               onChange={(e) =>
-                setFormData({ ...formData, phoneNumber: e.target.value })
+                setFormData({ ...formData, pin: e.target.value })
               }
+              maxLength={6}
             />
           </div>
         </div>
@@ -77,7 +107,7 @@ export default function UserDetailModal({ user, onClose, onSave }: Props) {
           <Button variant="outline" onClick={onClose}>
             취소
           </Button>
-          <Button onClick={() => onSave({ ...user, ...formData })}>저장</Button>
+          <Button onClick={handleSave}>수정</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
