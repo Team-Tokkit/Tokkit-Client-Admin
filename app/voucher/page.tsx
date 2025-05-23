@@ -17,7 +17,7 @@ export default function VoucherManagement() {
           onClick={() => router.push("/voucher/create")} 
         >
           <PlusIcon className="h-4 w-4" />
-          공지사항 등록
+          바우처 등록
         </Button>
       </div>
 
