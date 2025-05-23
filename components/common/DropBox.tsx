@@ -1,21 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
+interface DropBoxItem {
+  label: string;
+  onClick: () => void;
+  icon?: React.ReactNode;
+  danger?: boolean;
+  disabled?: boolean;
+}
+
 interface DropBoxProps {
   isOpen: boolean;
   onToggle: () => void;
-  onView?: () => void;
-  onEdit?: () => void;
+  items: DropBoxItem[];
 }
 
-export default function DropBox({
-  isOpen,
-  onToggle,
-  onView,
-  onEdit,
-}: DropBoxProps) {
+export default function DropBox({ isOpen, onToggle, items }: DropBoxProps) {
   const triggerRef = useRef<HTMLDivElement>(null);
-  const menuHeight = 80;
+  const menuHeight = items.length * 40;
   const margin = 8;
 
   const [openUpward, setOpenUpward] = useState(false);
@@ -26,48 +28,39 @@ export default function DropBox({
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
 
-      if (
-        spaceBelow < menuHeight + margin &&
-        spaceAbove > menuHeight + margin
-      ) {
-        setOpenUpward(true);
-      } else {
-        setOpenUpward(false);
-      }
+      setOpenUpward(
+        spaceBelow < menuHeight + margin && spaceAbove > menuHeight + margin
+      );
     }
-  }, [isOpen]);
+  }, [isOpen, items.length]);
 
   return (
     <div
       className="relative inline-block text-left dropdown-trigger"
       ref={triggerRef}
     >
-      <Button variant="ghost" onClick={onToggle}>
+      <Button variant="ghost" onClick={onToggle} type="button">
         ⋮
       </Button>
-
       {isOpen && (
         <div
-          className={`absolute right-0 z-50 w-40 bg-white border rounded shadow ${
+          className={`absolute right-0 z-50 w-40 bg-white border rounded shadow text-sm ${
             openUpward ? "bottom-full mb-2" : "top-full mt-2"
           }`}
         >
-          {onView && (
+          {items.map((item, index) => (
             <button
-              onClick={onView}
-              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+              key={index}
+              onClick={item.onClick}
+              disabled={item.disabled}
+              className={`w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 ${
+                item.danger ? "text-red-600" : ""
+              } ${item.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              상세보기
+              {item.icon}
+              {item.label}
             </button>
-          )}
-          {onEdit && (
-            <button
-              onClick={onEdit}
-              className="w-full text-left px-4 py-2 hover:bg-gray-100"
-            >
-              수정하기
-            </button>
-          )}
+          ))}
         </div>
       )}
     </div>
