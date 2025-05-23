@@ -136,10 +136,7 @@ export default function VoucherList() {
   // 테이블 컬럼 정의
   const columns = [
     { key: "id", header: "ID", cell: (item: Voucher) => item.id },
-    {
-      key: "imageUrl",
-      header: "바우처 이미지",
-      cell: (item: Voucher) => (
+    { key: "imageUrl", header: "", cell: (item: Voucher) => (
         <img
           src={item.imageUrl || "/placeholder.png"}
           alt="이미지"
@@ -147,19 +144,25 @@ export default function VoucherList() {
         />
       ),
     },
-    // columns 배열에서 name 클릭시 상세보기 연결
-    {
-      key: "name", header: "바우처명", cell: (item: Voucher) => (
+    { key: "name", header: "바우처명", cell: (item: Voucher) => (
         <button
           onClick={() => handleViewDetail(item.id)}
-          className="text-gray-900 hover:text-blue-600 hover:underline transition-colors"
+          className="max-w-[150px] overflow-hidden whitespace-nowrap text-ellipsis text-gray-900 hover:text-blue-600 hover:underline transition-colors"
         >
           {item.name}
         </button>
       )
     },
+    { key: "price", header: "할인가", cell: (item: Voucher) => `${item.price.toLocaleString()}원`,},
     { key: "storeCategory", header: "카테고리", cell: (item: Voucher) => item.storeCategory },
     { key: "contact", header: "문의처", cell: (item: Voucher) => item.contact },
+    { key: "validDate", header: "유효기간", cell: (item: Voucher) => new Date(item.validDate).toLocaleDateString("ko-KR", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+    },
+
     {
       key: "actions",
       header: "",
