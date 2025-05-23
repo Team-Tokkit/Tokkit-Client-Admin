@@ -45,6 +45,12 @@ export interface VoucherDetail {
   refundPolicy: string;
   contact: string;
   imageUrl: string;
+  stores: {
+    id: number;
+    storeName: string;
+    roadAddress: string;
+    merchantPhone: string;
+  }[] | { content: { id: number; storeName: string; roadAddress: string; merchantPhone: string; }[] }; // 둘 다 대응 가능
 }
 
 
