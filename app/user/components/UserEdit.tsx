@@ -109,7 +109,7 @@ export default function UserEditDialog({ user, onClose, onSave }: Props) {
           <Button variant="outline" onClick={onClose}>
             취소
           </Button>
-          <Button onClick={handleSave}>수정</Button>
+          <Button onClick={handleSave}>저장</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
