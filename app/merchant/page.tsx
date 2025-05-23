@@ -6,9 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCcw } from "lucide-react";
 import List from "@/components/common/List";
-import MerchantDetailDialog from "./components/MerchantDetail";
+import MerchantEditDialog from "./components/MerchantEditDialog";
 import { useFetchMerchantData } from "./handlers/useFetchMerchantData";
 import { useMerchantActions } from "./handlers/useMerchantActions";
+import { fetchMerchantDetail } from "./api/merchant"; // 이 부분은 실제 경로에 맞게 수정
+import MerchantViewDialog from "./components/MerchantViewDialog";
+import DropBox from "@/components/common/Dropbox";
 
 interface Merchant {
   id: number;
@@ -17,13 +20,6 @@ interface Merchant {
   phoneNumber: string;
   status: "활성" | "비활성";
   createdAt: string;
-}
-
-interface MerchantUpdate {
-  id: number;
-  name: string;
-  phoneNumber: string;
-  status: "활성" | "비활성";
   pin?: string;
 }
 
@@ -33,8 +29,12 @@ export default function MerchantPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [localKeyword, setLocalKeyword] = useState("");
+
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
+  const [editMerchant, setEditMerchant] = useState<Merchant | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const fetchMerchantData = useFetchMerchantData({
     setMerchantList,
@@ -62,60 +62,66 @@ export default function MerchantPage() {
   };
 
   const merchantColumns = [
-    {
-      key: "id",
-      header: "ID",
-      cell: (merchant: Merchant) => <span>{merchant.id}</span>,
-    },
-    {
-      key: "name",
-      header: "이름",
-      cell: (merchant: Merchant) => <span className="font-medium">{merchant.name}</span>,
-    },
-    {
-      key: "email",
-      header: "이메일",
-      cell: (merchant: Merchant) => <span>{merchant.email}</span>,
-    },
-    {
-      key: "phone",
-      header: "전화번호",
-      cell: (merchant: Merchant) => <span>{merchant.phoneNumber}</span>,
-    },
+    { key: "id", header: "ID", cell: (m: Merchant) => <span>{m.id}</span> },
+    { key: "name", header: "이름", cell: (m: Merchant) => <span className="font-medium">{m.name}</span> },
+    { key: "email", header: "이메일", cell: (m: Merchant) => <span>{m.email}</span> },
+    { key: "phone", header: "전화번호", cell: (m: Merchant) => <span>{m.phoneNumber}</span> },
     {
       key: "status",
       header: "상태",
-      cell: (merchant: Merchant) => (
+      cell: (m: Merchant) => (
           <Badge
               className={
-                merchant.status === "활성"
+                m.status === "활성"
                     ? "bg-green-100 text-green-800 cursor-pointer"
                     : "bg-gray-100 text-gray-800 cursor-pointer"
               }
               onClick={() => {
                 if (confirm("상태를 변경하시겠습니까?")) {
-                  handleToggleStatus(merchant.id, merchant.status);
+                  handleToggleStatus(m.id, m.status);
                 }
               }}
           >
-            {merchant.status}
+            {m.status}
           </Badge>
       ),
     },
     {
       key: "joinedAt",
       header: "가입일",
-      cell: (merchant: Merchant) =>
-          new Date(merchant.createdAt).toLocaleDateString("ko-KR"),
+      cell: (m: Merchant) => new Date(m.createdAt).toLocaleDateString("ko-KR"),
     },
     {
       key: "actions",
       header: "관리",
-      cell: (merchant: Merchant) => (
-          <Button variant="ghost" onClick={() => handleViewMerchant(merchant)}>
-            상세
-          </Button>
-      ),
+      cell: (m: Merchant) => {
+        const isOpen = openDropdownId === m.id;
+        const items = [
+          {
+            label: "상세보기",
+            onClick: () => {
+              setOpenDropdownId(null);
+              handleViewMerchant(m);
+            },
+          },
+          {
+            label: "수정하기",
+            onClick: async () => {
+              setOpenDropdownId(null);
+              const detail = await fetchMerchantDetail(m.id);
+              setEditMerchant(detail);
+              setIsEditOpen(true);
+            },
+          },
+        ];
+        return (
+            <DropBox
+                isOpen={isOpen}
+                onToggle={() => setOpenDropdownId(isOpen ? null : m.id)}
+                items={items}
+            />
+        );
+      },
     },
   ];
 
@@ -157,11 +163,30 @@ export default function MerchantPage() {
         />
 
         {isDetailOpen && selectedMerchant && (
-            <MerchantDetailDialog
+            <MerchantViewDialog
                 open={isDetailOpen}
                 merchant={selectedMerchant}
                 onClose={() => setIsDetailOpen(false)}
-                onSave={(updated) => handleSaveMerchant(updated, selectedMerchant)}
+                onEdit={async () => {
+                  setIsDetailOpen(false);
+                  const detail = await fetchMerchantDetail(selectedMerchant.id);
+                  setEditMerchant(detail);
+                  setIsEditOpen(true);
+                }}
+            />
+        )}
+
+        {isEditOpen && editMerchant && (
+            <MerchantEditDialog
+                open={isEditOpen}
+                merchant={editMerchant}
+                onClose={() => {
+                  setIsEditOpen(false);
+                  setEditMerchant(null);
+                }}
+                onSave={async (updated) => {
+                  await handleSaveMerchant(updated, editMerchant);
+                }}
             />
         )}
       </div>
