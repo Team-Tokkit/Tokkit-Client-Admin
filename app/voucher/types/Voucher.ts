@@ -33,6 +33,21 @@ export interface GetVouchersResponse {
   totalPages: number;
 }
 
+export interface VoucherDetail {
+  id: number;
+  name: string;
+  price: number;
+  originalPrice: number;
+  totalCount: number;
+  remainingCount: number;
+  validDate: string;
+  detailDescription: string;
+  refundPolicy: string;
+  contact: string;
+  imageUrl: string;
+}
+
+
 export interface UpdateVoucherPayload {
   description: string;
   detailDescription: string;

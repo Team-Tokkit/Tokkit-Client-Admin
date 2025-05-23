@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Search,MoreVertical,Filter,SortAsc,Edit,Trash2,} from "lucide-react";
+import { Search, MoreVertical, Filter, SortAsc, Edit, Trash2, } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,AlertDialogTitle,} from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "@/components/ui/alert-dialog";
 import List from "@/components/common/List";
-import { getVouchers, updateVoucher } from "@/app/voucher/lib/api";
-import { Voucher } from "@/app/voucher/types/Voucher";
+import { getVouchers, updateVoucher, getVoucherDetail } from "@/app/voucher/lib/api";
+import { Voucher, VoucherDetail } from "@/app/voucher/types/Voucher";
 import UpdateModal from "./UpdateModal";
+import VoucherDetailModal from "./VoucherDetailModal";
 
 // 카테고리 라벨 정의
 const categoryLabels = {
@@ -32,6 +33,8 @@ export default function VoucherList() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [voucherDetail, setVoucherDetail] = useState<VoucherDetail | null>(null);
 
 
   // 수정/삭제 핸들러
@@ -119,6 +122,16 @@ export default function VoucherList() {
     }
   };
 
+  // 상세 조회 핸들러 
+  const handleViewDetail = async (voucherId: number) => {
+    try {
+      const detail = await getVoucherDetail(voucherId);
+      setVoucherDetail(detail);
+      setDetailModalOpen(true);
+    } catch (e) {
+      alert("바우처 상세 정보를 불러오지 못했습니다.");
+    }
+  };
 
   // 테이블 컬럼 정의
   const columns = [
@@ -134,12 +147,22 @@ export default function VoucherList() {
         />
       ),
     },
-    { key: "name", header: "바우처명", cell: (item: Voucher) => item.name },
+    // columns 배열에서 name 클릭시 상세보기 연결
+    {
+      key: "name", header: "바우처명", cell: (item: Voucher) => (
+        <button
+          onClick={() => handleViewDetail(item.id)}
+          className="text-gray-900 hover:text-blue-600 hover:underline transition-colors"
+        >
+          {item.name}
+        </button>
+      )
+    },
     { key: "storeCategory", header: "카테고리", cell: (item: Voucher) => item.storeCategory },
     { key: "contact", header: "문의처", cell: (item: Voucher) => item.contact },
     {
       key: "actions",
-      header: "관리",
+      header: "",
       cell: (item: Voucher) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -212,8 +235,8 @@ export default function VoucherList() {
                   {expirationPeriod === "asc"
                     ? "만료임박순"
                     : expirationPeriod === "desc"
-                    ? "만료여유순"
-                    : "정렬"}
+                      ? "만료여유순"
+                      : "정렬"}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -262,6 +285,13 @@ export default function VoucherList() {
         onOpenChange={setEditDialogOpen}
         voucher={selectedVoucher}
         onSubmit={handleEditSubmit}
+      />
+
+      {/* 바우처 상세 조회 모달 */}
+      <VoucherDetailModal
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        voucher={voucherDetail}
       />
     </div>
   );
