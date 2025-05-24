@@ -1,115 +1,90 @@
-import { useState } from "react";
+"use client";
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
-interface User {
-  id: number;
-  name: string;
-  phoneNumber: string;
-  status: "활성" | "비활성";
-  createdAt: string;
-  pin?: string;
-}
-
-interface Props {
+interface UserDetailDialogProps {
   open: boolean;
-  user: User;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    phoneNumber: string;
+    isDormant: boolean;
+    createdAt: string;
+    walletId: number;
+  } | null;
   onClose: () => void;
-  onSave: (user: User) => void;
+  onEdit: () => void;
 }
 
-export default function UserDetailDialog({ user, onClose, onSave }: Props) {
-  const [formData, setFormData] = useState({
-    name: user.name || "",
-    phoneNumber: user.phoneNumber || "",
-    pin: "",
-  });
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-
-    const formattedPhone = inputValue
-      .replace(/[^\d]/g, "")
-      .replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
-
-    setFormData({ ...formData, phoneNumber: formattedPhone });
-  };
-
-  const handleSave = () => {
-    if (formData.pin.length > 0 && formData.pin.length !== 6) {
-      alert("비밀번호는 숫자 6자리여야 합니다.");
-      return;
-    }
-
-    const updatedUser = {
-      ...user,
-      name: formData.name,
-      phoneNumber: formData.phoneNumber || user.phoneNumber,
-      pin: formData.pin,
-    };
-
-    onSave(updatedUser);
-    onClose();
-  };
+export default function UserDetailDialog({
+  open,
+  user,
+  onClose,
+  onEdit,
+}: UserDetailDialogProps) {
+  if (!user) return null;
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>사용자 수정</DialogTitle>
-          <DialogDescription>사용자 상세 정보를 수정합니다.</DialogDescription>
+          <DialogTitle>사용자 상세정보</DialogTitle>
+          <DialogDescription>사용자 상세 정보입니다.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          <div className="items-center gap-4">
-            <div className="font-semibold mb-3">이름</div>
-            <Input
-              placeholder="이름"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-            />
-          </div>
+        <div className="py-4 space-y-4 text-sm">
+          <InfoRow
+            label="상태"
+            value={
+              <Badge
+                className={
+                  user.isDormant
+                    ? "bg-gray-100 text-gray-800"
+                    : "bg-green-100 text-green-800"
+                }
+              >
+                {user.isDormant ? "비활성" : "활성"}
+              </Badge>
+            }
+          />
+          <InfoRow label="이름" value={user.name} />
+          <InfoRow label="사용자 ID" value={user.id} />
+          <InfoRow label="지갑 ID" value={user.walletId} />
+          <InfoRow label="이메일" value={user.email} />
+          <InfoRow label="전화번호" value={user.phoneNumber} />
 
-          <div className="items-center gap-4">
-            <div className="font-semibold mb-3">전화번호</div>
-            <Input
-              placeholder="전화번호"
-              value={formData.phoneNumber}
-              onChange={handlePhoneChange}
-            />
-          </div>
-
-          <div className="items-center gap-4">
-            <div className="font-semibold mb-3">간편 비밀번호 (숫자 6자리)</div>
-            <Input
-              type="password"
-              placeholder="숫자 6자리 입력"
-              value={formData.pin}
-              onChange={(e) =>
-                setFormData({ ...formData, pin: e.target.value })
-              }
-              maxLength={6}
-            />
-          </div>
+          <InfoRow
+            label="가입일"
+            value={new Date(user.createdAt).toLocaleDateString("ko-KR")}
+          />
         </div>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            취소
+            닫기
           </Button>
-          <Button onClick={handleSave}>수정</Button>
+          <Button onClick={onEdit}>수정</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: any }) {
+  return (
+    <div className="grid grid-cols-4 items-center gap-4">
+      <div className="font-semibold">{label}</div>
+      <div className="col-span-3">{value}</div>
+    </div>
   );
 }

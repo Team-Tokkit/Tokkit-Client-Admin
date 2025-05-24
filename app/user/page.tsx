@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCcw } from "lucide-react";
 import List from "@/components/common/List";
+import DropBox from "@/components/common/DropBox";
 import UserDetailDialog from "./components/UserDetail";
+import UserEditDialog from "./components/UserEdit";
 import {
   fetchUsers,
   fetchUserDetail,
@@ -17,18 +19,16 @@ import {
 interface User {
   id: number;
   name: string;
-  email: string;
   phoneNumber: string;
   status: "활성" | "비활성";
   createdAt: string;
+  email: string;
+  pin?: string;
 }
 
-interface UserUpdate {
-  id: number;
-  name: string;
-  phoneNumber: string;
-  status: "활성" | "비활성";
-  pin?: string;
+interface UserDetail extends User {
+  walletId: number;
+  isDormant: boolean;
 }
 
 export default function UserPage() {
@@ -37,8 +37,12 @@ export default function UserPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [localKeyword, setLocalKeyword] = useState("");
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [viewUser, setViewUser] = useState<UserDetail | null>(null);
+  const [editUser, setEditUser] = useState<User | null>(null);
 
   const fetchUserData = async () => {
     try {
@@ -61,6 +65,17 @@ export default function UserPage() {
     fetchUserData();
   }, [keyword, currentPage]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".dropdown-trigger")) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   const handleResetFilters = () => {
     setLocalKeyword("");
     setKeyword("");
@@ -77,32 +92,36 @@ export default function UserPage() {
     }
   };
 
-  const handleSaveUser = async (updated: UserUpdate) => {
-    try {
-      const phone = updated.phoneNumber || selectedUser?.phoneNumber;
+  const handleViewUser = async (user: User) => {
+    const detail = await fetchUserDetail(user.id);
+    setViewUser(detail as UserDetail);
+    setIsViewOpen(true);
+  };
 
+  const handleEditUser = async (user: User) => {
+    const detail: User = await fetchUserDetail(user.id);
+    setEditUser(detail);
+    setIsEditOpen(true);
+  };
+
+  const handleSaveUser = async (updated: User) => {
+    try {
       const response = await updateUser(updated.id, {
         name: updated.name,
-        phoneNumber: phone,
+        phoneNumber: updated.phoneNumber,
         pin: updated.pin,
       });
 
       if (response.isSuccess) {
         await fetchUserData();
-        setSelectedUser(null);
-        setIsDetailOpen(false);
+        setIsEditOpen(false);
+        setEditUser(null);
       } else {
-        console.error("사용자 수정 실패");
+        alert("수정 실패");
       }
     } catch (err) {
-      console.error("사용자 수정 중 오류 발생", err);
+      console.error("사용자 수정 실패", err);
     }
-  };
-
-  const handleViewUser = async (user: UserUpdate) => {
-    const userDetail = await fetchUserDetail(user.id);
-    setSelectedUser(userDetail);
-    setIsDetailOpen(true);
   };
 
   const userColumns = [
@@ -155,11 +174,34 @@ export default function UserPage() {
     {
       key: "actions",
       header: "관리",
-      cell: (user: User) => (
-        <Button variant="ghost" onClick={() => handleViewUser(user)}>
-          상세
-        </Button>
-      ),
+      cell: (user: User) => {
+        const isOpen = openDropdownId === user.id;
+
+        const items = [
+          {
+            label: "상세보기",
+            onClick: () => {
+              setOpenDropdownId(null);
+              handleViewUser(user);
+            },
+          },
+          {
+            label: "수정하기",
+            onClick: () => {
+              setOpenDropdownId(null);
+              handleEditUser(user);
+            },
+          },
+        ];
+
+        return (
+          <DropBox
+            isOpen={isOpen}
+            onToggle={() => setOpenDropdownId(isOpen ? null : user.id)}
+            items={items}
+          />
+        );
+      },
     },
   ];
 
@@ -204,11 +246,30 @@ export default function UserPage() {
         onPageChange={setCurrentPage}
       />
 
-      {isDetailOpen && selectedUser && (
+      {isViewOpen && viewUser && (
         <UserDetailDialog
-          open={isDetailOpen}
-          user={selectedUser}
-          onClose={() => setIsDetailOpen(false)}
+          open={isViewOpen}
+          user={viewUser}
+          onClose={() => {
+            setIsViewOpen(false);
+            setViewUser(null);
+          }}
+          onEdit={() => {
+            setIsViewOpen(false);
+            setIsEditOpen(true);
+            setEditUser(viewUser);
+          }}
+        />
+      )}
+
+      {isEditOpen && editUser && (
+        <UserEditDialog
+          open={isEditOpen}
+          user={editUser}
+          onClose={() => {
+            setIsEditOpen(false);
+            setEditUser(null);
+          }}
           onSave={handleSaveUser}
         />
       )}
