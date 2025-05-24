@@ -174,22 +174,34 @@ export default function UserPage() {
     {
       key: "actions",
       header: "관리",
-      cell: (user: User) => (
-        <DropBox
-          isOpen={openDropdownId === user.id}
-          onToggle={() =>
-            setOpenDropdownId(openDropdownId === user.id ? null : user.id)
-          }
-          onView={() => {
-            setOpenDropdownId(null);
-            handleViewUser(user);
-          }}
-          onEdit={() => {
-            setOpenDropdownId(null);
-            handleEditUser(user);
-          }}
-        />
-      ),
+      cell: (user: User) => {
+        const isOpen = openDropdownId === user.id;
+
+        const items = [
+          {
+            label: "상세보기",
+            onClick: () => {
+              setOpenDropdownId(null);
+              handleViewUser(user);
+            },
+          },
+          {
+            label: "수정하기",
+            onClick: () => {
+              setOpenDropdownId(null);
+              handleEditUser(user);
+            },
+          },
+        ];
+
+        return (
+          <DropBox
+            isOpen={isOpen}
+            onToggle={() => setOpenDropdownId(isOpen ? null : user.id)}
+            items={items}
+          />
+        );
+      },
     },
   ];
 
