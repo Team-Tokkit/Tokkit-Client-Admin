@@ -1,14 +1,14 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef } from "react"
 import { Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { uploadImageToS3 } from "../lib/api"
 
 interface ImageUploaderProps {
-  onImageChange?: (file: File | null) => void
+  onImageChange?: (imageUrl: string) => void; // string 타입으로 수정
 }
 
 export function ImageUploader({ onImageChange }: ImageUploaderProps) {
@@ -16,15 +16,25 @@ export function ImageUploader({ onImageChange }: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
     if (file) {
       const reader = new FileReader()
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         setPreview(reader.result as string)
+
+        try {
+          const contentType = file.type
+          const fileName = file.name
+          const imageUrl = await uploadImageToS3(file, fileName, contentType)
+
+          onImageChange?.(imageUrl)  
+        } catch (error) {
+          console.error("이미지 업로드 실패:", error)
+          alert("이미지 업로드에 실패했습니다.")
+        }
       }
       reader.readAsDataURL(file)
-      onImageChange?.(file)
     }
   }
 
@@ -37,18 +47,28 @@ export function ImageUploader({ onImageChange }: ImageUploaderProps) {
     setIsDragging(false)
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
 
     const file = e.dataTransfer.files?.[0] || null
     if (file) {
       const reader = new FileReader()
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         setPreview(reader.result as string)
+
+        try {
+          const contentType = file.type
+          const fileName = file.name
+          const imageUrl = await uploadImageToS3(file, fileName, contentType)
+
+          onImageChange?.(imageUrl) 
+        } catch (error) {
+          console.error("이미지 업로드 실패:", error)
+          alert("이미지 업로드에 실패했습니다.")
+        }
       }
       reader.readAsDataURL(file)
-      onImageChange?.(file)
     }
   }
 
@@ -57,7 +77,7 @@ export function ImageUploader({ onImageChange }: ImageUploaderProps) {
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
-    onImageChange?.(null)
+    onImageChange?.("")
   }
 
   return (
