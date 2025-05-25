@@ -53,10 +53,25 @@ export interface VoucherDetail {
   }[] | { content: { id: number; storeName: string; roadAddress: string; merchantPhone: string; }[] }; // 둘 다 대응 가능
 }
 
-
 export interface UpdateVoucherPayload {
   description: string;
   detailDescription: string;
   price: number;
   contact: string;
+}
+
+export interface VoucherCreateParams {
+  name: string;
+  description: string;
+  detailDescription: string;
+  originalPrice: number;
+  price: number;
+  totalCount: number;
+  remainingCount: number;
+  validDate: string;
+  refundPolicy: string;
+  contact: string;
+  storeCategory: StoreCategory;
+  storeIds: number[];
+  imageUrl: string;
 }
