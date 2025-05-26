@@ -37,15 +37,13 @@ export async function updateNotice(
   return response.data.result;
 }
 
-export const updateNoticeStatus = async (
-  noticeId: number,
-  isDeleted: boolean
-) => {
+export const updateNoticeStatus = async (noticeId: number, isDeleted: boolean) => {
   try {
     const response = await axios.patch(
       `${API_URL}/admin-api/notice/${noticeId}/status`,
+      null, 
       {
-        isDeleted,
+        params: { isDeleted },
       }
     );
     return response.data;

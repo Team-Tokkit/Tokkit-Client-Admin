@@ -287,7 +287,7 @@ export default function ApiLogPage() {
     },
     {
       key: "actions",
-      header: "",
+      header: "관리",
       cell: (log: ApiRequestLog) => (
         <Button variant="ghost" size="sm" onClick={() => handleViewLog(log)}>
           상세
