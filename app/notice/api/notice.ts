@@ -37,11 +37,20 @@ export async function updateNotice(
   return response.data.result;
 }
 
-export async function updateNoticeStatus(noticeId: number, isDeleted: boolean) {
-  const response = await axios.patch(
-    `${API_URL}/admin-api/notice/${noticeId}/status`,
-    null,
-    { params: { isDeleted } }
-  );
-  return response.data.result;
-}
+export const updateNoticeStatus = async (
+  noticeId: number,
+  isDeleted: boolean
+) => {
+  try {
+    const response = await axios.patch(
+      `${API_URL}/admin-api/notice/${noticeId}/status`,
+      {
+        isDeleted,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("공지사항 상태 업데이트 중 오류 발생:", error);
+    throw error;
+  }
+};
