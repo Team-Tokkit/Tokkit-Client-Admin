@@ -99,13 +99,10 @@ export default function NoticePage() {
     setIsEditOpen(true);
   };
 
-  const handleDeleteClick = (id: string | number) => {
-    const notice = notices.find((notice) => notice.id === id);
-    if (notice) {
-      setNoticeToDelete(notice); 
-      setIsDetailOpen(false);
-      setIsDeleteOpen(true);
-    }
+  const handleDeleteClick = (notice: Notice) => {
+    setNoticeToDelete(notice);
+    setIsDetailOpen(false);
+    setIsDeleteOpen(true);
   };
 
   const handleSaveNotice = async (formData: Partial<NoticeDetail>) => {
@@ -132,7 +129,9 @@ export default function NoticePage() {
   const handleConfirmDelete = async () => {
     try {
       if (noticeToDelete) {
-        await updateNoticeStatus(noticeToDelete.id, !noticeToDelete.isDeleted);
+        const updatedStatus = !noticeToDelete.isDeleted;
+        await updateNoticeStatus(noticeToDelete.id, updatedStatus);
+
         await fetchNoticesData();
       }
     } catch (err) {
@@ -172,14 +171,11 @@ export default function NoticePage() {
       header: "상태",
       cell: (notice: Notice) => (
         <Badge
-          className={`
-          px-2 py-1 rounded-full text-xs cursor-pointer
-          ${
+          className={`px-2 py-1 rounded-full text-xs cursor-pointer ${
             notice.isDeleted === true
               ? "bg-red-100 text-red-800"
               : "bg-green-100 text-green-800"
-          }  // 활성 상태
-        `}
+          }`}
           onClick={() => {
             if (confirm("상태를 변경하시겠습니까?")) {
               handleToggleStatus(notice.id, notice.isDeleted);
@@ -224,7 +220,7 @@ export default function NoticePage() {
             label: notice.isDeleted ? "복구" : "삭제",
             onClick: () => {
               setOpenDropdownId(null);
-              handleToggleStatus(notice.id, notice.isDeleted);
+              handleDeleteClick(notice);
             },
             danger: notice.isDeleted,
           },
@@ -290,7 +286,7 @@ export default function NoticePage() {
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
         onEdit={handleEditNotice}
-        onDelete={handleDeleteClick}
+        onDelete={(notice) => handleDeleteClick(notice)}
       />
 
       <NoticeEditDialog
@@ -312,8 +308,14 @@ export default function NoticePage() {
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
         onConfirm={handleConfirmDelete}
-        title="삭제 확인"
-        description="이 공지사항을 삭제하시겠습니까?\n삭제된 공지사항은 목록에서 '삭제됨' 상태로 표시됩니다."
+        title={noticeToDelete?.isDeleted ? "복구 확인" : "삭제 확인"}
+        description={
+          noticeToDelete?.isDeleted
+            ? "이 공지사항을 복구하시겠습니까? 복구된 공지사항은 목록에서 다시 '활성' 상태로 표시됩니다."
+            : "이 공지사항을 삭제하시겠습니까? 삭제된 공지사항은 목록에서 '삭제됨' 상태로 표시됩니다."
+        }
+        confirmText={noticeToDelete?.isDeleted ? "복구" : "삭제"}
+        confirmVariant={noticeToDelete?.isDeleted ? "default" : "destructive"}
       />
     </div>
   );

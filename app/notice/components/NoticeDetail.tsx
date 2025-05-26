@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
+
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
 interface NoticeDetailDialogProps {
@@ -66,7 +67,7 @@ export function NoticeDetailDialog({
                     : "bg-green-100 text-green-800"
                 }`}
               >
-                {isNoticeDeleted ? "비활성" : "활성"}{" "}
+                {isNoticeDeleted ? "비활성" : "활성"}
               </span>
             </div>
           </div>
@@ -84,10 +85,7 @@ export function NoticeDetailDialog({
             닫기
           </Button>
           <Button onClick={() => onEdit(notice)}>수정</Button>
-          <Button
-            variant="destructive"
-            onClick={() => onDelete(notice.id)}
-          >
+          <Button variant="destructive" onClick={() => onDelete(notice.id)}>
             삭제
           </Button>
         </DialogFooter>

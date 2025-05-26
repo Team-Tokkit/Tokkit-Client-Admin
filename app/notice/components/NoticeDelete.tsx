@@ -16,6 +16,8 @@ interface DeleteConfirmDialogProps {
   onConfirm: () => void;
   title: string;
   description: string;
+  confirmText?: string;
+  confirmVariant?: "default" | "destructive";
 }
 
 export function NoticeDeleteDialog({
@@ -24,6 +26,8 @@ export function NoticeDeleteDialog({
   onConfirm,
   title,
   description,
+  confirmText = "삭제",
+  confirmVariant = "destructive",
 }: DeleteConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -36,8 +40,8 @@ export function NoticeDeleteDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             취소
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            삭제
+          <Button variant={confirmVariant} onClick={onConfirm}>
+            {confirmText}
           </Button>
         </DialogFooter>
       </DialogContent>
