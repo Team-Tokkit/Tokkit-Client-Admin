@@ -73,7 +73,7 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      router.push("/dashboard");
+      router.push("/auth");
     } catch (error) {
       setErrors((prev) => ({
         ...prev,

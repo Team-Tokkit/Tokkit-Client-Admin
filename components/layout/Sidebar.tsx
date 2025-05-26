@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
 
 const menu = [
-  { label: "대시보드", icon: BarChart3, path: "/dashboard" },
   { label: "인증 관리", icon: ShieldCheck, path: "/auth" },
   { label: "결제 관리", icon: CreditCard, path: "/transaction" },
   { label: "사용자 관리", icon: Users, path: "/user" },
