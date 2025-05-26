@@ -80,6 +80,7 @@ export default function UserPage() {
     setLocalKeyword("");
     setKeyword("");
     setCurrentPage(1);
+    fetchUserData();
   };
 
   const handleToggleStatus = async (userId: number, currentStatus: string) => {

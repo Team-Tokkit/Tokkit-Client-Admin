@@ -9,9 +9,9 @@ import List from "@/components/common/List";
 import MerchantEditDialog from "./components/MerchantEditDialog";
 import { useFetchMerchantData } from "./handlers/useFetchMerchantData";
 import { useMerchantActions } from "./handlers/useMerchantActions";
-import { fetchMerchantDetail } from "./api/merchant"; // 이 부분은 실제 경로에 맞게 수정
+import { fetchMerchantDetail } from "./api/merchant";
 import MerchantViewDialog from "./components/MerchantViewDialog";
-import DropBox from "@/components/common/Dropbox";
+import DropBox from "@/components/common/DropBox";
 
 interface Merchant {
   id: number;

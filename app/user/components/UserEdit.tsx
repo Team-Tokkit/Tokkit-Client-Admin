@@ -35,13 +35,14 @@ export default function UserEditDialog({ user, onClose, onSave }: Props) {
   });
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
+    let inputValue = e.target.value.replace(/[^\d]/g, "");
+    if (inputValue.length > 11) {
+      inputValue = inputValue.slice(0, 11);
+    }
 
-    const formattedPhone = inputValue
-      .replace(/[^\d]/g, "")
-      .replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+    inputValue = inputValue.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
 
-    setFormData({ ...formData, phoneNumber: formattedPhone });
+    setFormData({ ...formData, phoneNumber: inputValue });
   };
 
   const handleSave = () => {
