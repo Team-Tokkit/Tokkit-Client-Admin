@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Search, Plus, RefreshCcw } from "lucide-react";
 import { NoticeDetailDialog } from "./components/NoticeDetail";
 import { NoticeEditDialog } from "./components/NoticeEdit";
@@ -20,10 +21,12 @@ import {
 export interface Notice {
   id: number;
   title: string;
-  deleted: boolean;
+  isDeleted: boolean;
+  status: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
 export interface NoticeDetail extends Notice {
   content: string;
   author: string;
@@ -70,6 +73,19 @@ export default function NoticePage() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  const handleToggleStatus = async (
+    noticeId: number,
+    currentStatus: boolean
+  ) => {
+    const newStatus = !currentStatus;
+    try {
+      await updateNoticeStatus(noticeId, newStatus);
+      fetchNoticesData();
+    } catch (err) {
+      console.error("상태 변경 실패", err);
+    }
+  };
+
   const handleViewNotice = async (notice: Notice) => {
     const full = await fetchNoticeDetail(notice.id);
     setSelectedNotice(full);
@@ -83,10 +99,13 @@ export default function NoticePage() {
     setIsEditOpen(true);
   };
 
-  const handleDeleteClick = (notice: Notice) => {
-    setNoticeToDelete(notice);
-    setIsDetailOpen(false);
-    setIsDeleteOpen(true);
+  const handleDeleteClick = (id: string | number) => {
+    const notice = notices.find((notice) => notice.id === id);
+    if (notice) {
+      setNoticeToDelete(notice); 
+      setIsDetailOpen(false);
+      setIsDeleteOpen(true);
+    }
   };
 
   const handleSaveNotice = async (formData: Partial<NoticeDetail>) => {
@@ -113,7 +132,7 @@ export default function NoticePage() {
   const handleConfirmDelete = async () => {
     try {
       if (noticeToDelete) {
-        await updateNoticeStatus(noticeToDelete.id, !noticeToDelete.deleted);
+        await updateNoticeStatus(noticeToDelete.id, !noticeToDelete.isDeleted);
         await fetchNoticesData();
       }
     } catch (err) {
@@ -132,6 +151,7 @@ export default function NoticePage() {
     setSearchInput("");
     setSearchQuery("");
     setCurrentPage(0);
+    fetchNoticesData();
   };
 
   const columns = [
@@ -151,15 +171,23 @@ export default function NoticePage() {
       key: "status",
       header: "상태",
       cell: (notice: Notice) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs ${
-            notice.deleted
+        <Badge
+          className={`
+          px-2 py-1 rounded-full text-xs cursor-pointer
+          ${
+            notice.isDeleted === true
               ? "bg-red-100 text-red-800"
               : "bg-green-100 text-green-800"
-          }`}
+          }  // 활성 상태
+        `}
+          onClick={() => {
+            if (confirm("상태를 변경하시겠습니까?")) {
+              handleToggleStatus(notice.id, notice.isDeleted);
+            }
+          }}
         >
-          {notice.deleted ? "삭제됨" : "활성"}
-        </span>
+          {notice.isDeleted === true ? "비활성" : "활성"}
+        </Badge>
       ),
     },
     {
@@ -193,19 +221,12 @@ export default function NoticePage() {
             },
           },
           {
-            label: "수정",
+            label: notice.isDeleted ? "복구" : "삭제",
             onClick: () => {
               setOpenDropdownId(null);
-              handleEditNotice(notice);
+              handleToggleStatus(notice.id, notice.isDeleted);
             },
-          },
-          {
-            label: notice.deleted ? "완전삭제" : "삭제",
-            onClick: () => {
-              setOpenDropdownId(null);
-              handleDeleteClick(notice);
-            },
-            danger: true,
+            danger: notice.isDeleted,
           },
         ];
 
@@ -291,12 +312,8 @@ export default function NoticePage() {
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
         onConfirm={handleConfirmDelete}
-        title={noticeToDelete?.deleted ? "완전 삭제 확인" : "삭제 확인"}
-        description={
-          noticeToDelete?.deleted
-            ? "이 공지사항을 완전히 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다."
-            : "이 공지사항을 삭제하시겠습니까?\n\n삭제된 공지사항은 목록에서 '삭제됨' 상태로 표시됩니다."
-        }
+        title="삭제 확인"
+        description="이 공지사항을 삭제하시겠습니까?\n삭제된 공지사항은 목록에서 '삭제됨' 상태로 표시됩니다."
       />
     </div>
   );

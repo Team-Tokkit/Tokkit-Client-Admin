@@ -34,6 +34,8 @@ export function NoticeDetailDialog({
     ? format(new Date(notice.updatedAt), "yyyy년 MM월 dd일 HH:mm")
     : "날짜 정보 없음";
 
+  const isNoticeDeleted = notice.isDeleted === true;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -59,12 +61,12 @@ export function NoticeDetailDialog({
             <div className="col-span-3">
               <span
                 className={`px-2 py-1 rounded-full text-xs ${
-                  notice.deleted
+                  isNoticeDeleted
                     ? "bg-red-100 text-red-800"
                     : "bg-green-100 text-green-800"
                 }`}
               >
-                {notice.deleted ? "삭제됨" : "활성"}
+                {isNoticeDeleted ? "비활성" : "활성"}{" "}
               </span>
             </div>
           </div>
@@ -82,8 +84,11 @@ export function NoticeDetailDialog({
             닫기
           </Button>
           <Button onClick={() => onEdit(notice)}>수정</Button>
-          <Button variant="destructive" onClick={() => onDelete(notice.id)}>
-            {notice.deleted ? "완전 삭제" : "삭제"}
+          <Button
+            variant="destructive"
+            onClick={() => onDelete(notice.id)}
+          >
+            삭제
           </Button>
         </DialogFooter>
       </DialogContent>
