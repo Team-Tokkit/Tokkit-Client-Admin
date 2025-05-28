@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCcw } from "lucide-react";
 import List from "@/components/common/List";
-import DropBox from "@/components/common/DropBox";
 import UserDetailDialog from "./components/UserDetail";
 import UserEditDialog from "./components/UserEdit";
 import {
@@ -15,6 +14,7 @@ import {
   updateUserStatus,
   updateUser,
 } from "@/app/user/api/user";
+import DropBox from "@/components/common/DropBox";
 
 interface User {
   id: number;
