@@ -84,7 +84,7 @@ export function NoticeDetailDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             닫기
           </Button>
-          <Button onClick={() => onEdit(notice)}>수정</Button>
+          <Button data-cy="edit-button" onClick={() => onEdit(notice)}>수정</Button>
           <Button variant="destructive" onClick={() => onDelete(notice.id)}>
             삭제
           </Button>
