@@ -13,6 +13,7 @@ export default function VoucherManagement() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">바우처 관리</h1>
         <Button
+          data-cy="voucher-create-button"
           className="bg-black hover:bg-gray-800"
           onClick={() => router.push("/voucher/create")} 
         >

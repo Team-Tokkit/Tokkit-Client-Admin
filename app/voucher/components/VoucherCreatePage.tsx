@@ -111,7 +111,7 @@ export default function VoucherCreatePage() {
           <Button variant="outline" type="button">
             취소
           </Button>
-          <Button type="submit" className="bg-black text-white hover:bg-black/90 px-6">
+          <Button data-cy="voucher-submit-button" type="submit" className="bg-black text-white hover:bg-black/90 px-6">
             바우처 등록
           </Button>
         </div>

@@ -111,6 +111,7 @@ export default function VoucherDetailModal({ open, onOpenChange, voucher }: Prop
                   <div className="font-medium">사용처</div>
                   {storeList.length > 0 && (
                     <Button
+                      data-cy="view-all-stores"
                       variant="ghost"
                       size="sm"
                       className="h-7 px-2 text-xs flex items-center gap-1"

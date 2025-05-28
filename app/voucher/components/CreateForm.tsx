@@ -64,6 +64,7 @@ const CreateForm = ({
           <div className="space-y-6">
             <FormField label="바우처 이름" required id="voucher-name" tooltip="바우처의 이름을 입력하세요">
               <Input
+                data-cy="create-name"
                 placeholder="바우처 이름을 입력하세요"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -72,6 +73,7 @@ const CreateForm = ({
 
             <FormField label="요약 설명" required id="voucher-summary" tooltip="바우처에 대한 간략한 설명을 입력하세요">
               <Input
+                data-cy="create-description"
                 placeholder="간략한 설명을 입력하세요"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -83,7 +85,7 @@ const CreateForm = ({
                 value={formData.storeCategory}
                 onValueChange={(value) => setFormData({ ...formData, storeCategory: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger data-cy="create-category">
                   <SelectValue placeholder="카테고리를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
@@ -100,6 +102,7 @@ const CreateForm = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField label="정가" required id="voucher-original-price" tooltip="바우처의 원래 가격을 입력하세요">
                 <Input
+                  data-cy="create-original-price"
                   type="number"
                   placeholder="원래 가격"
                   value={formData.originalPrice}
@@ -111,6 +114,7 @@ const CreateForm = ({
 
               <FormField label="할인가" required id="voucher-discounted-price" tooltip="바우처의 할인된 가격을 입력하세요">
                 <Input
+                  data-cy="create-price"
                   type="number"
                   placeholder="할인된 가격"
                   value={formData.price}
@@ -122,6 +126,7 @@ const CreateForm = ({
 
               <FormField label="총 수량" required id="voucher-quantity" tooltip="바우처의 총 발행 수량을 입력하세요">
                 <Input
+                  data-cy="create-total-count"
                   type="number"
                   placeholder="총 수량"
                   value={formData.totalCount}
@@ -134,6 +139,7 @@ const CreateForm = ({
               <DatePickerWithRange
                 date={formData.validDate}
                 setDate={(date) => setFormData({ ...formData, validDate: date })}
+                data-cy="create-valid-date"
               />
             </FormField>
           </div>
@@ -147,6 +153,7 @@ const CreateForm = ({
           <div className="space-y-6">
             <FormField label="상세 설명" required id="voucher-description" tooltip="바우처에 대한 자세한 설명을 입력하세요">
               <Textarea
+                data-cy="create-detail-description"
                 placeholder="바우처에 대한 자세한 설명을 입력하세요"
                 className="min-h-[150px]"
                 value={formData.detailDescription}
@@ -156,6 +163,7 @@ const CreateForm = ({
 
             <FormField label="환불 정책" required id="voucher-refund" tooltip="바우처의 환불 정책을 설명하세요">
               <Textarea
+                data-cy="create-refund-policy"
                 placeholder="환불 정책에 대한 설명을 입력하세요"
                 className="min-h-[100px]"
                 value={formData.refundPolicy}
@@ -165,6 +173,7 @@ const CreateForm = ({
 
             <FormField label="문의 연락처" required id="voucher-contact" tooltip="고객 문의를 받을 연락처를 입력하세요">
               <Input
+                data-cy="create-contact"
                 placeholder="연락처 정보를 입력하세요 (예: 010-1234-5678)"
                 value={formData.contact}
                 onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
