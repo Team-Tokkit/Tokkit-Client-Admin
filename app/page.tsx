@@ -1,67 +1,49 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { NoticeContent } from "@/components/notice-content";
+// import { AuthContent } from "@/components/auth-content";
+import { PaymentContent } from "@/components/payment-content";
+import { MerchantContent } from "@/components/merchant-content";
+// import { SystemLogContent } from "@/components/system-log-content";
 import {
-  Ticket,
-  Users,
-  FileText,
-  ShieldCheck,
-  CreditCard,
-  Store,
-  Terminal,
-  LogOut,
-  Menu,
-  BarChart3,
-} from "lucide-react"
-import VoucherIssueForm from "@/components/voucher-issue-form"
-import { VoucherContent } from "@/components/voucher-content"
-import { NoticeContent } from "@/components/notice-content"
-import { AuthContent } from "@/components/auth-content"
-import { PaymentContent } from "@/components/payment-content"
-import { MerchantContent } from "@/components/merchant-content"
-import { SystemLogContent } from "@/components/system-log-content"
-import { useAuth } from "@/components/auth-provider"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("dashboard")
-  const [showVoucherIssue, setShowVoucherIssue] = useState(false)
-  const [voucherToEdit, setVoucherToEdit] = useState(null)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { logout } = useAuth()
+export default function Home() {
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [showVoucherIssue, setShowVoucherIssue] = useState(false);
+  const [voucherToEdit, setVoucherToEdit] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
-  // 바우처 발행 폼 토글
-  const toggleVoucherIssue = (voucher = null) => {
-    setVoucherToEdit(voucher)
-    setShowVoucherIssue(!showVoucherIssue)
-  }
-
-  // 바우처 발행 완료 핸들러
-  const handleVoucherIssueComplete = () => {
-    setShowVoucherIssue(false)
-    setVoucherToEdit(null)
-    // 여기에 바우처 목록 새로고침 로직 추가
-  }
+  useEffect(() => {
+    router.replace("/login");
+  }, [router]);
 
   // 탭 변경 핸들러
   const handleTabChange = (tab) => {
-    setActiveTab(tab)
-    setIsMobileMenuOpen(false) // 모바일에서 탭 선택 시 메뉴 닫기
-  }
+    setActiveTab(tab);
+    setIsMobileMenuOpen(false); // 모바일에서 탭 선택 시 메뉴 닫기
+  };
 
   // 현재 날짜 및 시간
-  const [currentDateTime, setCurrentDateTime] = useState(new Date())
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   // 현재 시간 업데이트
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentDateTime(new Date())
-    }, 60000) // 1분마다 업데이트
+      setCurrentDateTime(new Date());
+    }, 60000); // 1분마다 업데이트
 
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timer);
+  }, []);
 
   // 날짜 포맷팅
   const formatDate = (date) => {
@@ -70,205 +52,25 @@ export default function Dashboard() {
       month: "long",
       day: "numeric",
       weekday: "long",
-    })
-  }
+    });
+  };
 
   // 시간 포맷팅
   const formatTime = (date) => {
     return date.toLocaleTimeString("ko-KR", {
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   return (
     <div className="flex flex-col h-screen">
-      {/* 상단 헤더 (모바일 및 데스크톱) */}
-      <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center">
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
-              <div className="p-4 border-b">
-                <h2 className="text-lg font-semibold">관리자 대시보드</h2>
-              </div>
-              <nav className="p-4 space-y-2">
-                <Button
-                  variant={activeTab === "dashboard" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => handleTabChange("dashboard")}
-                >
-                  <BarChart3 className="mr-2 h-4 w-4" />
-                  대시보드
-                </Button>
-                <Button
-                  variant={activeTab === "voucher" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => handleTabChange("voucher")}
-                >
-                  <Ticket className="mr-2 h-4 w-4" />
-                  바우처 관리
-                </Button>
-                <Button
-                  variant={activeTab === "user" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => handleTabChange("user")}
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  사용자 관리
-                </Button>
-                <Button
-                  variant={activeTab === "notice" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => handleTabChange("notice")}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  공지사항 관리
-                </Button>
-                <Button
-                  variant={activeTab === "auth" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => handleTabChange("auth")}
-                >
-                  <ShieldCheck className="mr-2 h-4 w-4" />
-                  인증 관리
-                </Button>
-                <Button
-                  variant={activeTab === "payment" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => handleTabChange("payment")}
-                >
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  결제 관리
-                </Button>
-                <Button
-                  variant={activeTab === "merchant" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => handleTabChange("merchant")}
-                >
-                  <Store className="mr-2 h-4 w-4" />
-                  판매자 관리
-                </Button>
-                <Button
-                  variant={activeTab === "system" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => handleTabChange("system")}
-                >
-                  <Terminal className="mr-2 h-4 w-4" />
-                  시스템 로그
-                </Button>
-                <div className="pt-4 border-t mt-4">
-                  <Button variant="outline" className="w-full justify-start" onClick={logout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    로그아웃
-                  </Button>
-                </div>
-              </nav>
-            </SheetContent>
-          </Sheet>
-          <h1 className="text-xl font-bold ml-2 md:ml-0">관리자 대시보드</h1>
-        </div>
-        <Button variant="ghost" size="sm" onClick={logout} className="hidden md:flex">
-          <LogOut className="mr-2 h-4 w-4" />
-          로그아웃
-        </Button>
-      </header>
-
       <div className="flex flex-1 overflow-hidden">
-        {/* 사이드바 (데스크톱) */}
-        <div className="w-64 border-r bg-muted/40 p-4 hidden md:block">
-          <nav className="space-y-2">
-            <Button
-              variant={activeTab === "dashboard" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveTab("dashboard")}
-            >
-              <BarChart3 className="mr-2 h-4 w-4" />
-              대시보드
-            </Button>
-            <Button
-              variant={activeTab === "voucher" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveTab("voucher")}
-            >
-              <Ticket className="mr-2 h-4 w-4" />
-              바우처 관리
-            </Button>
-            <Button
-              variant={activeTab === "user" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveTab("user")}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              사용자 관리
-            </Button>
-            <Button
-              variant={activeTab === "notice" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveTab("notice")}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              공지사항 관리
-            </Button>
-            <Button
-              variant={activeTab === "auth" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveTab("auth")}
-            >
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              인증 관리
-            </Button>
-            <Button
-              variant={activeTab === "payment" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveTab("payment")}
-            >
-              <CreditCard className="mr-2 h-4 w-4" />
-              결제 관리
-            </Button>
-            <Button
-              variant={activeTab === "merchant" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveTab("merchant")}
-            >
-              <Store className="mr-2 h-4 w-4" />
-              판매자 관리
-            </Button>
-            <Button
-              variant={activeTab === "system" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveTab("system")}
-            >
-              <Terminal className="mr-2 h-4 w-4" />
-              시스템 로그
-            </Button>
-          </nav>
-        </div>
-
         {/* 메인 콘텐츠 */}
         <div className="flex-1 overflow-auto">
           <div className="p-4 md:p-6">
             {/* 대시보드 */}
             {activeTab === "dashboard" && <DashboardContent />}
-
-            {/* 바우처 관리 */}
-            {activeTab === "voucher" && (
-              <>
-                {showVoucherIssue ? (
-                  <VoucherIssueForm
-                    voucher={voucherToEdit}
-                    onCancel={toggleVoucherIssue}
-                    onComplete={handleVoucherIssueComplete}
-                  />
-                ) : (
-                  <VoucherContent onIssueClick={toggleVoucherIssue} />
-                )}
-              </>
-            )}
 
             {/* 사용자 관리 */}
             {activeTab === "user" && <UserContent />}
@@ -291,36 +93,73 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // 대시보드 컴포넌트
 function DashboardContent() {
   // 샘플 데이터
   const stats = [
-    { title: "총 바우처 수", value: "1,234", change: "+12%", changeType: "increase" },
-    { title: "활성 사용자", value: "5,678", change: "+7.3%", changeType: "increase" },
-    { title: "판매자 수", value: "246", change: "+2.5%", changeType: "increase" },
-    { title: "이번 달 매출", value: "₩12,345,678", change: "-3.2%", changeType: "decrease" },
-  ]
+    {
+      title: "총 바우처 수",
+      value: "1,234",
+      change: "+12%",
+      changeType: "increase",
+    },
+    {
+      title: "활성 사용자",
+      value: "5,678",
+      change: "+7.3%",
+      changeType: "increase",
+    },
+    {
+      title: "판매자 수",
+      value: "246",
+      change: "+2.5%",
+      changeType: "increase",
+    },
+    {
+      title: "이번 달 매출",
+      value: "₩12,345,678",
+      change: "-3.2%",
+      changeType: "decrease",
+    },
+  ];
 
   const recentVouchers = [
-    { id: "V001", name: "맛있는 식당 30% 할인", status: "활성", date: "2023-05-15" },
-    { id: "V002", name: "행복 카페 아메리카노 1+1", status: "활성", date: "2023-05-14" },
-    { id: "V003", name: "뷰티살롱 헤어컷 50% 할인", status: "소진", date: "2023-05-12" },
-  ]
+    {
+      id: "V001",
+      name: "맛있는 식당 30% 할인",
+      status: "활성",
+      date: "2023-05-15",
+    },
+    {
+      id: "V002",
+      name: "행복 카페 아메리카노 1+1",
+      status: "활성",
+      date: "2023-05-14",
+    },
+    {
+      id: "V003",
+      name: "뷰티살롱 헤어컷 50% 할인",
+      status: "소진",
+      date: "2023-05-12",
+    },
+  ];
 
   const recentNotices = [
     { id: 1, title: "시스템 점검 안내", date: "2023-05-15" },
     { id: 2, title: "바우처 발행 정책 변경 안내", date: "2023-05-10" },
     { id: 3, title: "신규 판매자 등록 절차 안내", date: "2023-05-05" },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">대시보드</h1>
-        <p className="text-muted-foreground">시스템 현황 및 주요 지표를 확인하세요.</p>
+        <p className="text-muted-foreground">
+          시스템 현황 및 주요 지표를 확인하세요.
+        </p>
       </div>
 
       {/* 통계 카드 */}
@@ -329,12 +168,16 @@ function DashboardContent() {
           <Card key={index}>
             <CardContent className="p-6">
               <div className="flex flex-col gap-1">
-                <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </p>
                 <div className="flex items-center justify-between">
                   <p className="text-2xl font-bold">{stat.value}</p>
                   <span
                     className={`text-xs font-medium ${
-                      stat.changeType === "increase" ? "text-green-500" : "text-red-500"
+                      stat.changeType === "increase"
+                        ? "text-green-500"
+                        : "text-red-500"
                     }`}
                   >
                     {stat.change}
@@ -357,18 +200,23 @@ function DashboardContent() {
           <CardContent>
             <div className="space-y-4">
               {recentVouchers.map((voucher) => (
-                <div key={voucher.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+                <div
+                  key={voucher.id}
+                  className="flex items-center justify-between border-b pb-2 last:border-0"
+                >
                   <div>
                     <p className="font-medium">{voucher.name}</p>
-                    <p className="text-sm text-muted-foreground">{voucher.date}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {voucher.date}
+                    </p>
                   </div>
                   <span
                     className={`px-2 py-1 rounded-full text-xs ${
                       voucher.status === "활성"
                         ? "bg-green-100 text-green-800"
                         : voucher.status === "소진"
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-gray-100 text-gray-800"
+                        ? "bg-orange-100 text-orange-800"
+                        : "bg-gray-100 text-gray-800"
                     }`}
                   >
                     {voucher.status}
@@ -391,10 +239,15 @@ function DashboardContent() {
           <CardContent>
             <div className="space-y-4">
               {recentNotices.map((notice) => (
-                <div key={notice.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+                <div
+                  key={notice.id}
+                  className="flex items-center justify-between border-b pb-2 last:border-0"
+                >
                   <div>
                     <p className="font-medium">{notice.title}</p>
-                    <p className="text-sm text-muted-foreground">{notice.date}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {notice.date}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -446,7 +299,7 @@ function DashboardContent() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 // 다른 컴포넌트들은 이전과 동일하게 유지
@@ -456,5 +309,5 @@ function UserContent() {
       <h1 className="text-2xl font-bold">사용자 관리</h1>
       <p>사용자 관리 컴포넌트가 여기에 표시됩니다.</p>
     </div>
-  )
+  );
 }
