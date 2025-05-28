@@ -25,6 +25,7 @@ const menu = [
   { label: "공지사항 관리", icon: FileText, path: "/notice" },
   { label: "API 요청 로그", icon: Terminal, path: "/api-logs" },
   { label: "시스템 에러 로그", icon: TriangleAlert, path: "/error-logs" },
+  { label: "통합 로그", icon: BarChart3, path: "/unified-logs" },
 ];
 
 export default function Sidebar({
