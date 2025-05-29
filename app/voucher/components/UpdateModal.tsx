@@ -79,6 +79,7 @@ export default function UpdateModal({
           <div>
             <label className="block text-sm font-medium mb-1">바우처 설명</label>
             <Input
+              data-cy="update-description"
               name="description"
               value={form.description}
               onChange={handleChange}
@@ -88,6 +89,7 @@ export default function UpdateModal({
           <div>
             <label className="block text-sm font-medium mb-1">상세 설명</label>
             <Input
+              data-cy="update-detail-description"
               name="detailDescription"
               value={form.detailDescription}
               onChange={handleChange}
@@ -97,6 +99,7 @@ export default function UpdateModal({
           <div>
             <label className="block text-sm font-medium mb-1">할인가</label>
             <Input
+              data-cy="update-price"
               name="price"
               type="number"
               value={form.price}
@@ -107,6 +110,7 @@ export default function UpdateModal({
           <div>
             <label className="block text-sm font-medium mb-1">문의 연락처</label>
             <Input
+              data-cy="update-contact"
               name="contact"
               value={form.contact}
               onChange={handleChange}
@@ -118,7 +122,7 @@ export default function UpdateModal({
           <DialogClose asChild>
             <Button variant="outline">취소</Button>
           </DialogClose>
-          <Button onClick={handleSubmit} className="bg-primary text-white">
+          <Button data-cy="update-submit-button" onClick={handleSubmit} className="bg-primary text-white">
             저장
           </Button>
         </DialogFooter>
