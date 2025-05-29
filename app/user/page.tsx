@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCcw } from "lucide-react";
 import List from "@/components/common/List";
-import DropBox from "@/components/common/DropBox";
+import DropBox from "@/components/common/drop-box";
 import UserDetailDialog from "./components/UserDetail";
 import UserEditDialog from "./components/UserEdit";
 import {

@@ -9,7 +9,7 @@ import { NoticeDetailDialog } from "./components/NoticeDetail";
 import { NoticeEditDialog } from "./components/NoticeEdit";
 import { NoticeDeleteDialog } from "./components/NoticeDelete";
 import List from "@/components/common/List";
-import DropBox from "@/components/common/DropBox";
+import DropBox from "@/components/common/drop-box";
 import {
   fetchNotices,
   fetchNoticeDetail,
@@ -212,6 +212,7 @@ export default function NoticePage() {
         const items = [
           {
             label: "상세보기",
+            dataCy: "notice-view-button",
             onClick: () => {
               setOpenDropdownId(null);
               handleViewNotice(notice);
@@ -219,6 +220,7 @@ export default function NoticePage() {
           },
           {
             label: notice.isDeleted ? "복구" : "삭제",
+            dataCy: "notice-delete-button",
             onClick: () => {
               setOpenDropdownId(null);
               handleDeleteClick(notice);

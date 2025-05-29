@@ -40,7 +40,7 @@ export function NoticeDeleteDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             취소
           </Button>
-          <Button variant={confirmVariant} onClick={onConfirm}>
+          <Button data-cy="confirm-delete-button" variant={confirmVariant} onClick={onConfirm}>
             {confirmText}
           </Button>
         </DialogFooter>

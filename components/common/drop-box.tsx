@@ -7,6 +7,7 @@ interface DropBoxItem {
   icon?: React.ReactNode;
   danger?: boolean;
   disabled?: boolean;
+  dataCy?: string;
 }
 
 interface DropBoxProps {
@@ -39,7 +40,7 @@ export default function DropBox({ isOpen, onToggle, items }: DropBoxProps) {
       className="relative inline-block text-left dropdown-trigger"
       ref={triggerRef}
     >
-      <Button variant="ghost" onClick={onToggle} type="button">
+      <Button data-cy="notice-more-button" variant="ghost" onClick={onToggle} type="button">
         ⋮
       </Button>
       {isOpen && (
@@ -47,9 +48,11 @@ export default function DropBox({ isOpen, onToggle, items }: DropBoxProps) {
           className={`absolute right-0 z-50 w-40 bg-white border rounded shadow text-sm ${
             openUpward ? "bottom-full mb-2" : "top-full mt-2"
           }`}
+          data-cy="dropdown-menu"
         >
           {items.map((item, index) => (
             <button
+              data-cy={item.dataCy}
               key={index}
               onClick={item.onClick}
               disabled={item.disabled}
