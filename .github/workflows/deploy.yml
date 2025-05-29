@@ -1,0 +1,47 @@
+name: Deploy Tokkit Client Admin
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate .env file from secret
+        run: |
+          echo "${{ secrets.CLIENT_ADMIN_ENV }}" > .env
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::233777023703:role/tokkit-github-actions-ecr-role
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ap-northeast-2 \
+          | docker login --username AWS --password-stdin 233777023703.dkr.ecr.ap-northeast-2.amazonaws.com
+
+      - name: Build and Push Docker Image to ECR (Admin)
+        run: |
+          docker build -t tokkit-client-admin .
+          docker tag tokkit-client-admin:latest 233777023703.dkr.ecr.ap-northeast-2.amazonaws.com/tokkit-client-admin
+          docker push 233777023703.dkr.ecr.ap-northeast-2.amazonaws.com/tokkit-client-admin
+
+      - name: Trigger CodeDeploy for Admin
+        run: |
+          aws deploy create-deployment \
+            --application-name tokkit-client-admin-app \
+            --deployment-group-name tokkit-client-admin-dg \
+            --s3-location bucket=tokkit-codedeploy-bucket,key=deployments/tokkit-client-admin.zip,bundleType=zip \
+            --region ap-northeast-2

@@ -11,29 +11,29 @@ interface DropBoxItem {
 }
 
 interface DropBoxProps {
-  isOpen: boolean;
-  onToggle: () => void;
-  items: DropBoxItem[];
+    isOpen: boolean;
+    onToggle: () => void;
+    items: DropBoxItem[];
 }
 
 export default function DropBox({ isOpen, onToggle, items }: DropBoxProps) {
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const menuHeight = items.length * 40;
-  const margin = 8;
+    const triggerRef = useRef<HTMLDivElement>(null);
+    const menuHeight = items.length * 40;
+    const margin = 8;
 
-  const [openUpward, setOpenUpward] = useState(false);
+    const [openUpward, setOpenUpward] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
+    useEffect(() => {
+        if (isOpen && triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
 
-      setOpenUpward(
-        spaceBelow < menuHeight + margin && spaceAbove > menuHeight + margin
-      );
-    }
-  }, [isOpen, items.length]);
+            setOpenUpward(
+                spaceBelow < menuHeight + margin && spaceAbove > menuHeight + margin
+            );
+        }
+    }, [isOpen, items.length]);
 
   return (
     <div
@@ -66,6 +66,6 @@ export default function DropBox({ isOpen, onToggle, items }: DropBoxProps) {
           ))}
         </div>
       )}
-    </div>
+    </div> 
   );
 }
