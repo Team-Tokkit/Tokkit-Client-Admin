@@ -1,7 +1,4 @@
-import axios from "axios";
-import { getApiUrl } from "@/lib/getApiUrl";
-
-const API_URL = getApiUrl();
+import apiClient from "@/lib/apiClient";
 
 export async function fetchAuthLogs(params: {
   page?: number;
@@ -39,13 +36,13 @@ export async function fetchAuthLogs(params: {
 
   if (params.dateRange) query.append("dateRange", params.dateRange);
 
-  const url = `${API_URL}/admin-api/login-logs?${query.toString()}`;
-  const response = await axios.get(url);
+  const url = `/admin-api/login-logs?${query.toString()}`;
+  const response = await apiClient.get(url);
   return response.data;
 }
 
 export async function fetchAuthLogDetail(id: number) {
-  const url = `${API_URL}/admin-api/login-logs/${id}`;
-  const response = await axios.get(url);
+  const url = `/admin-api/login-logs/${id}`;
+  const response = await apiClient.get(url);
   return response.data;
 }
