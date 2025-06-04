@@ -4,8 +4,9 @@ import type React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { logoutAdmin } from "@/app/login/api/authApi";
-
+import { getApiUrl } from "@/lib/getApiUrl";
 // 사용자 정보 타입 정의
+const API_URL = getApiUrl();
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const check = async () => {
       try {
-        const res = await fetch("http://localhost:8080/admin/me", {
+        const res = await fetch(`${API_URL}/admin/me`, {
           credentials: "include",
         });
 
@@ -98,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 로그인
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch("http://localhost:8080/admin/login", {
+      const response = await fetch(`${API_URL}/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
