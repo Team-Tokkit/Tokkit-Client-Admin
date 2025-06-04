@@ -1,7 +1,4 @@
-import axios from "axios";
-import { getApiUrl } from "@/lib/getApiUrl";
-
-const API_URL = getApiUrl();
+import apiClient from "@/lib/apiClient";
 
 export async function fetchErrorLogs(params: {
   page?: number;
@@ -19,13 +16,13 @@ export async function fetchErrorLogs(params: {
     query.append("severity", params.severity);
   if (params.dateRange) query.append("dateRange", params.dateRange);
 
-  const url = `${API_URL}/admin-api/system-error-logs?${query.toString()}`;
-  const response = await axios.get(url);
+  const url = `/admin-api/system-error-logs?${query.toString()}`;
+  const response = await apiClient.get(url);
   return response.data;
 }
 
 export async function fetchErrorLogDetail(id: number) {
-  const url = `${API_URL}/admin-api/system-error-logs/${id}`;
-  const response = await axios.get(url);
+  const url = `/admin-api/system-error-logs/${id}`;
+  const response = await apiClient.get(url);
   return response.data;
 }
