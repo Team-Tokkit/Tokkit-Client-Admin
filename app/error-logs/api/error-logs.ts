@@ -1,11 +1,4 @@
-<<<<<<< HEAD
 import apiClient from "@/lib/apiClient";
-=======
-import axios from "axios";
-import { getApiUrl } from "@/lib/getApiUrl";
-
-const API_URL = getApiUrl();
->>>>>>> 4b71f2b612e0b12dfadab8957a69b2b89b60de3d
 
 export async function fetchErrorLogs(params: {
   page?: number;
