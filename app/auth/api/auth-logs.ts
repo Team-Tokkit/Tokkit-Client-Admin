@@ -1,11 +1,4 @@
-<<<<<<< HEAD
 import apiClient from "@/lib/apiClient";
-=======
-import axios from "axios";
-import { getApiUrl } from "@/lib/getApiUrl";
-
-const API_URL = getApiUrl();
->>>>>>> 4b71f2b612e0b12dfadab8957a69b2b89b60de3d
 
 export async function fetchAuthLogs(params: {
   page?: number;
@@ -43,23 +36,13 @@ export async function fetchAuthLogs(params: {
 
   if (params.dateRange) query.append("dateRange", params.dateRange);
 
-<<<<<<< HEAD
   const url = `/admin-api/login-logs?${query.toString()}`;
   const response = await apiClient.get(url);
-=======
-  const url = `${API_URL}/admin-api/login-logs?${query.toString()}`;
-  const response = await axios.get(url);
->>>>>>> 4b71f2b612e0b12dfadab8957a69b2b89b60de3d
   return response.data;
 }
 
 export async function fetchAuthLogDetail(id: number) {
-<<<<<<< HEAD
   const url = `/admin-api/login-logs/${id}`;
   const response = await apiClient.get(url);
-=======
-  const url = `${API_URL}/admin-api/login-logs/${id}`;
-  const response = await axios.get(url);
->>>>>>> 4b71f2b612e0b12dfadab8957a69b2b89b60de3d
   return response.data;
 }
