@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const check = async () => {
       try {
-        const res = await fetch(`${API_URL}/admin/me`, {
+        const res = await fetch(`${API_URL}/admin-api/me`, {
           credentials: "include",
         });
 
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 로그인
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${API_URL}/admin/login`, {
+      const response = await fetch(`${API_URL}/admin-api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
