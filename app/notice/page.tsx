@@ -9,7 +9,11 @@ import { NoticeDetailDialog } from "./components/NoticeDetail";
 import { NoticeEditDialog } from "./components/NoticeEdit";
 import { NoticeDeleteDialog } from "./components/NoticeDelete";
 import List from "@/components/common/List";
+<<<<<<< HEAD
 import DropBox from "@/components/common/drop-box";
+=======
+import DropBox from "@/components/common/DropBox";
+>>>>>>> 4b71f2b612e0b12dfadab8957a69b2b89b60de3d
 import {
   fetchNotices,
   fetchNoticeDetail,
