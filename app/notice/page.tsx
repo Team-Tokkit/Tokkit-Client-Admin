@@ -9,7 +9,7 @@ import { NoticeDetailDialog } from "./components/NoticeDetail";
 import { NoticeEditDialog } from "./components/NoticeEdit";
 import { NoticeDeleteDialog } from "./components/NoticeDelete";
 import List from "@/components/common/List";
-import DropBox from "@/components/common/DropBox";
+import DropBox from "@/components/common/drop-box";
 import {
   fetchNotices,
   fetchNoticeDetail,
@@ -171,6 +171,7 @@ export default function NoticePage() {
       header: "상태",
       cell: (notice: Notice) => (
         <Badge
+          data-cy="notice-status-badge"
           className={`px-2 py-1 rounded-full text-xs cursor-pointer ${
             notice.isDeleted === true
               ? "bg-red-100 text-red-800"
@@ -211,6 +212,7 @@ export default function NoticePage() {
         const items = [
           {
             label: "상세보기",
+            dataCy: "notice-view-button",
             onClick: () => {
               setOpenDropdownId(null);
               handleViewNotice(notice);
@@ -218,6 +220,7 @@ export default function NoticePage() {
           },
           {
             label: notice.isDeleted ? "복구" : "삭제",
+            dataCy: "notice-delete-button",
             onClick: () => {
               setOpenDropdownId(null);
               handleDeleteClick(notice);
@@ -228,6 +231,7 @@ export default function NoticePage() {
 
         return (
           <DropBox
+            data-cy="notice-more-button"
             isOpen={isOpen}
             onToggle={() => setOpenDropdownId(isOpen ? null : notice.id)}
             items={items}
@@ -263,6 +267,7 @@ export default function NoticePage() {
           </div>
 
           <Button
+            data-cy="new-notice-button"
             onClick={() => {
               setSelectedNotice(null);
               setIsNewOpen(true);

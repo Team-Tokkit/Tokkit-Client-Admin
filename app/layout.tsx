@@ -7,8 +7,11 @@ import LayoutWrapper from "@/components/layout/LayoutWrapper";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "관리자 대시보드",
-  description: "관리자 대시보드 애플리케이션",
+  title: "Tokkit - 관리자 대시보드",
+  description: "Tokkit 관리자 대시보드 애플리케이션",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
