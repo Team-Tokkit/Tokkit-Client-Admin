@@ -11,7 +11,7 @@ import { useFetchMerchantData } from "./handlers/useFetchMerchantData";
 import { useMerchantActions } from "./handlers/useMerchantActions";
 import { fetchMerchantDetail } from "./api/merchant";
 import MerchantViewDialog from "./components/MerchantViewDialog";
-import DropBox from "@/components/common/DropBox";
+import DropBox from "@/components/common/drop-box";
 
 interface Merchant {
   id: number;

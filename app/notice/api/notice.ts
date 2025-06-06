@@ -1,25 +1,27 @@
-import axios from "axios";
-import { getApiUrl } from "@/lib/getApiUrl";
-
-const API_URL = getApiUrl();
+import apiClient from "@/lib/apiClient";
 
 export async function fetchNotices(page: number = 0, keyword: string = "") {
-  const response = await axios.get(`${API_URL}/admin-api/notice`, {
+  const response = await apiClient.get(`/admin-api/notice`, {
     params: {
       page,
       keyword,
     },
+    withCredentials: true,
   });
   return response.data.result;
 }
 
 export async function fetchNoticeDetail(noticeId: number) {
-  const response = await axios.get(`${API_URL}/admin-api/notice/${noticeId}`);
+  const response = await apiClient.get(`/admin-api/notice/${noticeId}`, {
+    withCredentials: true,
+  });
   return response.data.result;
 }
 
 export async function createNotice(data: { title: string; content: string }) {
-  const response = await axios.post(`${API_URL}/admin-api/notice`, data);
+  const response = await apiClient.post(`/admin-api/notice`, data, {
+    withCredentials: true,
+  });
   return response.data.result;
 }
 
@@ -30,20 +32,28 @@ export async function updateNotice(
     content: string;
   }
 ) {
-  const response = await axios.put(
-    `${API_URL}/admin-api/notice/${noticeId}`,
-    data
+  const response = await apiClient.put(
+    `/admin-api/notice/${noticeId}`,
+    data,
+    {
+      withCredentials: true,
+    }
   );
+
   return response.data.result;
 }
 
-export const updateNoticeStatus = async (noticeId: number, isDeleted: boolean) => {
+export const updateNoticeStatus = async (
+  noticeId: number,
+  isDeleted: boolean
+) => {
   try {
-    const response = await axios.patch(
-      `${API_URL}/admin-api/notice/${noticeId}/status`,
-      null, 
+    const response = await apiClient.patch(
+      `/admin-api/notice/${noticeId}/status`,
+      null,
       {
         params: { isDeleted },
+        withCredentials: true,
       }
     );
     return response.data;

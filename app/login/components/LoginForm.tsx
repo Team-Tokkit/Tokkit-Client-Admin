@@ -73,7 +73,21 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      router.push("/auth");
+      const success = await login(
+        formData.email,
+        formData.password,
+        formData.rememberMe
+      );
+
+      if (success) {
+        router.push("/auth");
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          general: "로그인에 실패했습니다. 이메일 또는 비밀번호를 확인하세요.",
+        }));
+        router.replace("/");
+      }
     } catch (error) {
       setErrors((prev) => ({
         ...prev,

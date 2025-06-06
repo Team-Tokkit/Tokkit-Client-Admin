@@ -1,7 +1,4 @@
-import { getApiUrl } from "@/lib/getApiUrl";
-import axios from "axios";
-
-const API_URL = getApiUrl();
+import apiClient from "@/lib/apiClient";
 
 export async function fetchApiLogs(params: {
   page?: number;
@@ -30,8 +27,8 @@ export async function fetchApiLogs(params: {
     params.endDate ?? new Date().toISOString().slice(0, 10)
   );
 
-  const url = `${API_URL}/admin-api/logs/api-requests?${query.toString()}`;
-  const response = await axios.get(url);
+  const url = `/admin-api/logs/api-requests?${query.toString()}`;
+  const response = await apiClient.get(url);
   return response.data;
 }
 
@@ -55,13 +52,13 @@ export async function fetchChartData(params: {
   }
   if (params.keyword) query.append("keyword", params.keyword);
 
-  const url = `${API_URL}/admin-api/logs/api-requests/chart?${query.toString()}`;
-  const response = await axios.get(url);
+  const url = `/admin-api/logs/api-requests/chart?${query.toString()}`;
+  const response = await apiClient.get(url);
   return response.data;
 }
 
 export async function fetchApiLogDetail(id: number) {
-  const url = `${API_URL}/admin-api/logs/api-requests/${id}`;
-  const response = await axios.get(url);
+  const url = `/admin-api/logs/api-requests/${id}`;
+  const response = await apiClient.get(url);
   return response.data;
 }

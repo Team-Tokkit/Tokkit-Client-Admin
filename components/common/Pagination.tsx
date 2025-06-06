@@ -67,6 +67,7 @@ export default function Pagination({
         <ChevronRight />
       </button>
       <button
+        data-cy="pagination-last"
         onClick={() => onPageChange(totalPages)}
         disabled={currentPage === totalPages}
         className="text-gray-400 disabled:opacity-50"

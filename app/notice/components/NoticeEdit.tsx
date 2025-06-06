@@ -104,6 +104,7 @@ export function NoticeEditDialog({
           <div className="space-y-2">
             <Label htmlFor="title">제목</Label>
             <Input
+              data-cy="edit-title-input"
               id="title"
               name="title"
               value={formData.title}
@@ -117,6 +118,7 @@ export function NoticeEditDialog({
           <div className="space-y-2">
             <Label htmlFor="content">내용</Label>
             <Textarea
+              data-cy="edit-content-input"
               id="content"
               name="content"
               value={formData.content}
@@ -133,7 +135,7 @@ export function NoticeEditDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             취소
           </Button>
-          <Button onClick={handleSubmit}>{isNew ? "등록" : "저장"}</Button>
+          <Button data-cy="save-edit-button" onClick={handleSubmit}>{isNew ? "등록" : "저장"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
