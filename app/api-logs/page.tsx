@@ -30,7 +30,10 @@ import ApiLogDetail from "@/app/api-logs/components/ApiLogDetail";
 import List from "@/components/common/List";
 
 const ApiLogChart = dynamic(
-  () => import("@/app/api-logs/components/ApiLogChart").then(mod => mod.ApiLogChart),
+  () =>
+    import("@/app/api-logs/components/ApiLogChart").then(
+      (mod) => mod.ApiLogChart
+    ),
   {
     ssr: false,
     loading: () => <p>차트를 불러오는 중입니다...</p>,
@@ -85,6 +88,20 @@ export default function ApiLogPage() {
     Array.isArray(dateRange) && dateRange[1]
       ? format(dateRange[1], "yyyy-MM-dd")
       : format(new Date(), "yyyy-MM-dd");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const {
+        Chart,
+        CategoryScale,
+        BarElement,
+        Title,
+        Tooltip,
+        Legend,
+      } = require("chart.js");
+      Chart.register(CategoryScale, BarElement, Title, Tooltip, Legend);
+    }
+  }, []);
 
   useEffect(() => {
     fetchLogs();
@@ -257,7 +274,9 @@ export default function ApiLogPage() {
 
     const statusText = code.toString();
     if (statusText.startsWith("2")) {
-      return <Badge className="bg-green-100 text-green-800">{statusText}</Badge>;
+      return (
+        <Badge className="bg-green-100 text-green-800">{statusText}</Badge>
+      );
     } else if (statusText.startsWith("4")) {
       return <Badge className="bg-red-100 text-red-800">{statusText}</Badge>;
     } else if (statusText.startsWith("5")) {
@@ -346,9 +365,9 @@ export default function ApiLogPage() {
                 >
                   {Array.isArray(dateRange) && dateRange[0] && dateRange[1]
                     ? `${format(dateRange[0], "yyyy-MM-dd")} ~ ${format(
-                      dateRange[1],
-                      "yyyy-MM-dd"
-                    )}`
+                        dateRange[1],
+                        "yyyy-MM-dd"
+                      )}`
                     : "기간 선택"}
                 </Button>
               </PopoverTrigger>
