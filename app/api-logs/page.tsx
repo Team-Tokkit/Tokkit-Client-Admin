@@ -22,12 +22,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, RefreshCcw } from "lucide-react";
-import { ApiLogChart } from "@/app/api-logs/components/ApiLogChart";
+import dynamic from "next/dynamic";
 import { fetchApiLogs } from "@/app/api-logs/api/api-logs";
 import { fetchApiLogDetail } from "@/app/api-logs/api/api-logs";
 import { fetchChartData } from "@/app/api-logs/api/api-logs";
 import ApiLogDetail from "@/app/api-logs/components/ApiLogDetail";
 import List from "@/components/common/List";
+
+const ApiLogChart = dynamic(
+  () =>
+    import("@/app/api-logs/components/ApiLogChart").then(
+      (mod) => mod.ApiLogChart
+    ),
+  {
+    ssr: false,
+    loading: () => <p>차트를 불러오는 중입니다...</p>,
+  }
+);
 
 export interface ApiRequestLog {
   id: number;
@@ -79,6 +90,20 @@ export default function ApiLogPage() {
       : format(new Date(), "yyyy-MM-dd");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const {
+        Chart,
+        CategoryScale,
+        BarElement,
+        Title,
+        Tooltip,
+        Legend,
+      } = require("chart.js");
+      Chart.register(CategoryScale, BarElement, Title, Tooltip, Legend);
+    }
+  }, []);
+
+  useEffect(() => {
     fetchLogs();
     fetchChartDataFromAPI();
   }, [currentPage, apiSearchParams]);
@@ -106,7 +131,6 @@ export default function ApiLogPage() {
           apiSearchParams.method !== "all" ? apiSearchParams.method : undefined,
         startDate,
         endDate,
-        // Todo 삼항 연산자 True False 반대로 변경 필요
         status: ["2xx", "4xx", "5xx", "all"].includes(apiSearchParams.status)
           ? undefined
           : apiSearchParams.status,
@@ -248,16 +272,20 @@ export default function ApiLogPage() {
   const getStatusBadge = (code: number) => {
     if (!code) return <Badge className="bg-gray-100 text-gray-600">N/A</Badge>;
 
-    if (code >= 200 && code < 300)
-      return <Badge className="bg-green-100 text-green-800">{code}</Badge>;
-
-    if (code >= 400 && code < 500)
-      return <Badge className="bg-yellow-100 text-yellow-800">{code}</Badge>;
-
-    if (code >= 500)
-      return <Badge className="bg-red-100 text-red-800">{code}</Badge>;
-
-    return <Badge>{code}</Badge>;
+    const statusText = code.toString();
+    if (statusText.startsWith("2")) {
+      return (
+        <Badge className="bg-green-100 text-green-800">{statusText}</Badge>
+      );
+    } else if (statusText.startsWith("4")) {
+      return <Badge className="bg-red-100 text-red-800">{statusText}</Badge>;
+    } else if (statusText.startsWith("5")) {
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800">{statusText}</Badge>
+      );
+    } else {
+      return <Badge className="bg-gray-100 text-gray-600">{statusText}</Badge>;
+    }
   };
 
   const apiColumns = [
