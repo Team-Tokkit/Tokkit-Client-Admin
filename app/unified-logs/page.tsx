@@ -62,18 +62,20 @@ export default function UnifiedLogsPage() {
             setTotalPages(result.totalPages);
         } catch (e) {
             console.error("통합 로그 조회 실패", e);
+            setLogs([]);
+            setTotalPages(1);
         }
         setLoading(false);
     };
 
     useEffect(() => {
         fetchLogs();
-    }, [page]);
+    }, [page, traceId, idType, idValue, from, to]);
 
     const handleSearch = () => {
         setTraceId(localTraceId);
+        setIdValue(idType === "all" ? "" : idValue);
         setPage(1);
-        fetchLogs();
     };
 
     const handleResetFilters = () => {
@@ -84,7 +86,6 @@ export default function UnifiedLogsPage() {
         setLogType("all");
         setDateRange(null);
         setPage(1);
-        fetchLogs();
     };
 
     const columns = [
@@ -241,11 +242,9 @@ export default function UnifiedLogsPage() {
                                     if (range && range[0] instanceof Date && range[1] instanceof Date) {
                                         setDateRange(range as [Date, Date]);
                                         setPage(1);
-                                        fetchLogs();
                                     } else if (range === null) {
                                         setDateRange(null);
                                         setPage(1);
-                                        fetchLogs();
                                     }
                                 }}
                             /> </PopoverContent>
