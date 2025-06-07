@@ -116,7 +116,11 @@ export default function ErrorLogPage() {
   };
 
   const columns = [
-    { key: "id", header: "ID", cell: (log: ErrorLog) => <span>{log.id}</span> },
+    {
+      key: "traceId",
+      header: "Trace ID",
+      cell: (log: ErrorLog) => <span>{log.traceId}</span>
+    },
     {
       key: "severity",
       header: "심각도",

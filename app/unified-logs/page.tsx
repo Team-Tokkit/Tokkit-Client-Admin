@@ -1,17 +1,17 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {format} from "date-fns";
-import {Search, RefreshCcw} from "lucide-react";
-import {Card} from "@/components/ui/card";
-import {Input} from "@/components/ui/input";
-import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge";
-import {Skeleton} from "@/components/ui/skeleton";
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { Search, RefreshCcw } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import List from "@/components/common/List";
 import Pagination from "@/components/common/Pagination";
-import {UnifiedLogResponseDto} from "./types/log";
-import {fetchUnifiedLogs} from "@/app/unified-logs/api/unified-logs";
+import { UnifiedLogResponseDto } from "./types/log";
+import { fetchUnifiedLogs } from "@/app/unified-logs/api/unified-logs";
 import UnifiedLogDetailDialog from "./components/UnifiedLogDetailDialog";
 import {
     Select,
@@ -67,7 +67,7 @@ export default function UnifiedLogsPage() {
     };
 
     useEffect(() => {
-            fetchLogs();
+        fetchLogs();
     }, [page]);
 
     const handleSearch = () => {
@@ -89,12 +89,17 @@ export default function UnifiedLogsPage() {
 
     const columns = [
         {
+            key: "traceId",
+            header: "Trace ID",
+            cell: (log: UnifiedLogResponseDto) => <span className="truncate">{log.traceId}</span>,
+        },
+        {
             key: "timestamp",
             header: "시간",
             cell: (log: UnifiedLogResponseDto) => (
                 <span className="whitespace-nowrap text-muted-foreground">
-          {format(new Date(log.timestamp), "yyyy. M. d. a h:mm:ss")}
-        </span>
+                    {format(new Date(log.timestamp), "yyyy. M. d. a h:mm:ss")}
+                </span>
             ),
         },
         {
@@ -103,11 +108,6 @@ export default function UnifiedLogsPage() {
             cell: (log: UnifiedLogResponseDto) => (
                 <Badge variant="outline" className="text-xs">{log.logType}</Badge>
             ),
-        },
-        {
-            key: "traceId",
-            header: "Trace ID",
-            cell: (log: UnifiedLogResponseDto) => <span className="truncate">{log.traceId}</span>,
         },
         {
             key: "userId",
@@ -130,8 +130,8 @@ export default function UnifiedLogsPage() {
                         setIsDetailOpen(true);
                     }}
                 >
-          {log.summary.length > 50 ? `${log.summary.slice(0, 50)}...` : log.summary}
-        </span>
+                    {log.summary.length > 50 ? `${log.summary.slice(0, 50)}...` : log.summary}
+                </span>
             ),
         },
         {
@@ -177,7 +177,7 @@ export default function UnifiedLogsPage() {
                         handleSearch();
                     }}>
                         <div className="relative">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"/>
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                                 type="search"
                                 placeholder="Trace ID 검색..."
@@ -190,7 +190,7 @@ export default function UnifiedLogsPage() {
 
                     <Select value={idType} onValueChange={(v) => setIdType(v)}>
                         <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="ID 종류"/>
+                            <SelectValue placeholder="ID 종류" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">유저 타입</SelectItem>
@@ -215,7 +215,7 @@ export default function UnifiedLogsPage() {
 
                     <Select value={logType} onValueChange={(v) => setLogType(v)}>
                         <SelectTrigger className="w-[150px]">
-                            <SelectValue placeholder="로그 타입"/>
+                            <SelectValue placeholder="로그 타입" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">로그 타입</SelectItem>
@@ -238,15 +238,21 @@ export default function UnifiedLogsPage() {
                             <CustomDateRangePicker
                                 value={dateRange}
                                 onChange={(range) => {
-                                    setDateRange(range);
-                                    setPage(1); // 👈 클릭 시 fetch 하도록 추가
-                                    fetchLogs(); // 👈 달력 선택 시 바로 fetch
+                                    if (range && range[0] instanceof Date && range[1] instanceof Date) {
+                                        setDateRange(range as [Date, Date]);
+                                        setPage(1);
+                                        fetchLogs();
+                                    } else if (range === null) {
+                                        setDateRange(null);
+                                        setPage(1);
+                                        fetchLogs();
+                                    }
                                 }}
                             /> </PopoverContent>
                     </Popover>
 
                     <Button variant="outline" className="gap-1" onClick={handleResetFilters}>
-                        <RefreshCcw className="h-4 w-4"/> 새로고침
+                        <RefreshCcw className="h-4 w-4" /> 새로고침
                     </Button>
                 </div>
             </div>
@@ -254,7 +260,7 @@ export default function UnifiedLogsPage() {
             {loading ? (
                 <Card className="p-4 space-y-2">
                     {[...Array(10)].map((_, i) => (
-                        <Skeleton key={i} className="h-10 w-full rounded"/>
+                        <Skeleton key={i} className="h-10 w-full rounded" />
                     ))}
                 </Card>
             ) : (

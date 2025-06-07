@@ -65,24 +65,28 @@ export default function TransactionPage() {
   };
 
   const transactionColumns = [
-    { key: "id", header: "ID", cell: (tx: Transaction) => <span>{tx.id}</span> },
+    {
+      key: "traceId",
+      header: "Trace ID",
+      cell: (tx: Transaction) => <span>{tx.traceId || '-'}</span>
+    },
     {
       key: "type",
       header: "유형",
       cell: (tx: Transaction) => (
-          <Badge
-              className={
-                tx.type === "DEPOSIT"
-                    ? "bg-blue-100 text-blue-800"
-                    : tx.type === "PURCHASE"
-                        ? "bg-green-100 text-green-800"
-                        : tx.type === "RECEIVE"
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-gray-100 text-gray-800"
-              }
-          >
-            {tx.type}
-          </Badge>
+        <Badge
+          className={
+            tx.type === "DEPOSIT"
+              ? "bg-blue-100 text-blue-800"
+              : tx.type === "PURCHASE"
+                ? "bg-green-100 text-green-800"
+                : tx.type === "RECEIVE"
+                  ? "bg-purple-100 text-purple-800"
+                  : "bg-gray-100 text-gray-800"
+          }
+        >
+          {tx.type}
+        </Badge>
       ),
     },
     {
@@ -94,23 +98,18 @@ export default function TransactionPage() {
       key: "status",
       header: "상태",
       cell: (tx: Transaction) => (
-          <Badge
-              className={
-                tx.status === "SUCCESS"
-                    ? "bg-green-100 text-green-800"
-                    : tx.status === "PENDING"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-red-100 text-red-800"
-              }
-          >
-            {tx.status}
-          </Badge>
+        <Badge
+          className={
+            tx.status === "SUCCESS"
+              ? "bg-green-100 text-green-800"
+              : tx.status === "PENDING"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-red-100 text-red-800"
+          }
+        >
+          {tx.status}
+        </Badge>
       ),
-    },
-    {
-      key: "txHash",
-      header: "Tx Hash",
-      cell: (tx: Transaction) => <span className="break-all">{tx.txHash || "-"}</span>,
     },
     {
       key: "createdAt",
@@ -121,67 +120,67 @@ export default function TransactionPage() {
       key: "actions",
       header: "관리",
       cell: (tx: Transaction) => (
-          <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedTransaction(tx)}
-          >상세
-          </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSelectedTransaction(tx)}
+        >상세
+        </Button>
       ),
     },
   ];
 
   return (
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold">거래 내역</h1>
-          <div className="flex flex-col md:flex-row gap-2">
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="유형" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 유형</SelectItem>
-                <SelectItem value="DEPOSIT">입금</SelectItem>
-                <SelectItem value="PURCHASE">구매</SelectItem>
-                <SelectItem value="RECEIVE">수령</SelectItem>
-                <SelectItem value="CONVERT">전환</SelectItem>
-              </SelectContent>
-            </Select>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold">거래 내역</h1>
+        <div className="flex flex-col md:flex-row gap-2">
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="유형" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체 유형</SelectItem>
+              <SelectItem value="DEPOSIT">입금</SelectItem>
+              <SelectItem value="PURCHASE">구매</SelectItem>
+              <SelectItem value="RECEIVE">수령</SelectItem>
+              <SelectItem value="CONVERT">전환</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="상태" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 상태</SelectItem>
-                <SelectItem value="SUCCESS">성공</SelectItem>
-                <SelectItem value="PENDING">대기</SelectItem>
-                <SelectItem value="FAILURE">실패</SelectItem>
-              </SelectContent>
-            </Select>
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="상태" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체 상태</SelectItem>
+              <SelectItem value="SUCCESS">성공</SelectItem>
+              <SelectItem value="PENDING">대기</SelectItem>
+              <SelectItem value="FAILURE">실패</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Button variant="outline" className="gap-1" onClick={handleResetFilters}>
-              <RefreshCcw className="h-4 w-4" /> 새로고침
-            </Button>
-          </div>
+          <Button variant="outline" className="gap-1" onClick={handleResetFilters}>
+            <RefreshCcw className="h-4 w-4" /> 새로고침
+          </Button>
         </div>
-
-        <List
-            data={transactionList}
-            columns={transactionColumns}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => fetchTransactionData(page - 1)}
-        />
-
-        {selectedTransaction && (
-            <TransactionDetailDialog
-                open={!!selectedTransaction}
-                transaction={selectedTransaction}
-                onClose={() => setSelectedTransaction(null)}
-            />
-        )}
       </div>
+
+      <List
+        data={transactionList}
+        columns={transactionColumns}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={(page) => fetchTransactionData(page - 1)}
+      />
+
+      {selectedTransaction && (
+        <TransactionDetailDialog
+          open={!!selectedTransaction}
+          transaction={selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
+        />
+      )}
+    </div>
   );
 }

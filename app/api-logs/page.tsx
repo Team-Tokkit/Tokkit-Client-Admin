@@ -29,16 +29,31 @@ import { fetchChartData } from "@/app/api-logs/api/api-logs";
 import ApiLogDetail from "@/app/api-logs/components/ApiLogDetail";
 import List from "@/components/common/List";
 
-const ApiLogChart = dynamic(
-  () =>
-    import("@/app/api-logs/components/ApiLogChart").then(
-      (mod) => mod.ApiLogChart
-    ),
-  {
-    ssr: false,
-    loading: () => <p>차트를 불러오는 중입니다...</p>,
-  }
-);
+// ApiLogChart 컴포넌트를 정적으로 임포트
+import { ApiLogChart } from "@/app/api-logs/components/ApiLogChart";
+
+// useEffect 밖으로 Chart.js 등록 코드 이동
+if (typeof window !== "undefined") {
+  const {
+    Chart,
+    CategoryScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    BarController,
+    LineController,
+  } = require("chart.js");
+  Chart.register(
+    CategoryScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    BarController,
+    LineController
+  );
+}
 
 export interface ApiRequestLog {
   id: number;
@@ -290,10 +305,10 @@ export default function ApiLogPage() {
 
   const apiColumns = [
     {
-      key: "endpoint",
-      header: "엔드포인트",
+      key: "traceId",
+      header: "Trace ID",
       cell: (log: ApiRequestLog) => (
-        <span className="font-medium">{log.endpoint}</span>
+        <span className="font-medium">{log.traceId}</span>
       ),
     },
     {

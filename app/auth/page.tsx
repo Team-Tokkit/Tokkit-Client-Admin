@@ -155,7 +155,11 @@ export default function AuthPage() {
   };
 
   const columns = [
-    { key: "id", header: "ID", cell: (log: AuthLog) => <span>{log.id}</span> },
+    {
+      key: "traceId",
+      header: "Trace ID",
+      cell: (log: AuthLog) => <span>{log.traceId}</span>
+    },
     {
       key: "event",
       header: "이벤트",
