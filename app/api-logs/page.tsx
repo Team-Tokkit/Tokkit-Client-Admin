@@ -113,8 +113,16 @@ export default function ApiLogPage() {
         Title,
         Tooltip,
         Legend,
+        BarController,
       } = require("chart.js");
-      Chart.register(CategoryScale, BarElement, Title, Tooltip, Legend);
+      Chart.register(
+        CategoryScale,
+        BarElement,
+        Title,
+        Tooltip,
+        Legend,
+        BarController
+      );
     }
   }, []);
 
@@ -380,9 +388,9 @@ export default function ApiLogPage() {
                 >
                   {Array.isArray(dateRange) && dateRange[0] && dateRange[1]
                     ? `${format(dateRange[0], "yyyy-MM-dd")} ~ ${format(
-                        dateRange[1],
-                        "yyyy-MM-dd"
-                      )}`
+                      dateRange[1],
+                      "yyyy-MM-dd"
+                    )}`
                     : "기간 선택"}
                 </Button>
               </PopoverTrigger>
